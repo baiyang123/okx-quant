@@ -1,12 +1,15 @@
 
 import unittest
+
+
 from okx import Grid
+from config import PASSPHRASE
 
 class GridTest(unittest.TestCase):
     def setUp(self):
-        api_key = 'your_apiKey'
-        api_secret_key = 'your_secretKey'
-        passphrase = 'your_secretKey'
+        api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
+        api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
+        passphrase = PASSPHRASE
         self.GridAPI = Grid.GridAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag='1', debug=False)
     """
     GRID_COMPUTE_MARIGIN_BALANCE = '/api/v5/tradingBot/grid/compute-margin-balance'
@@ -80,6 +83,8 @@ class GridTest(unittest.TestCase):
     #     print(self.GridAPI.get_recurring_buy_sub_orders(algoId="581191143417970688"))
 
     #581191143417970688
+    def test_ai_param(self):
+        print(self.GridAPI.grid_ai_param("contract_grid", "BTC-USDT-SWAP", "long"))
 
 if __name__ == '__main__':
     unittest.main()

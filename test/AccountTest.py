@@ -3,13 +3,14 @@ import unittest
 from loguru import logger
 
 from okx import Account
+from config import PASSPHRASE
 
 
 class AccountTest(unittest.TestCase):
     def setUp(self):
         api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
         api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
-        passphrase = ''
+        passphrase = PASSPHRASE
         # 0位正式环境 1 为模拟交易环境
         self.AccountAPI = Account.AccountAPI(api_key, api_secret_key, passphrase, flag='0')
 
