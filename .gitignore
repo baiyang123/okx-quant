@@ -1,3 +1,12 @@
 venv
-*.csv
-
+__pycache__
+*.log
+*.json
+*.out
+*.bak
+flask_dev*.log*
+test/api_test.py
+.idea
+*.xml
+!*alicloud.xml
+!*stf.xml

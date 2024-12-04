@@ -19,7 +19,7 @@ def init_app(profile_path):
         scheduler = APScheduler()
         scheduler.init_app(app)
 
-        # 报表任务
+        # 网格任务
         scheduler.add_job(func=contract_grid_work, trigger='cron', day="*", hour='*', minute='*', second='30',
                           id='contract_grid_work', args=[app])
 

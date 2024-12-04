@@ -1,3 +1,3 @@
 ENV = 'PRD'
 TASK_SWITCH = True
-PASSPHRASE = ''
+PASSPHRASE = 'Baiyang18!'

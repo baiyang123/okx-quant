@@ -72,6 +72,9 @@ def contract_grid_work(*args):
     contract_grid().strategy()
     pass
 
+def contract_grid_backtesting():
+    pass
+
 
 if __name__ == '__main__':
     contract_grid().strategy()

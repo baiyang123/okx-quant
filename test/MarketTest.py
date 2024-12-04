@@ -67,6 +67,9 @@ class MarketAPITest(unittest.TestCase):
     def test_get_tickers(self):
         print(self.MarketApi.get_tickers('SPOT'))
 
+    def test_get_ticker(self):
+        print(self.MarketApi.get_ticker('BTC-USD-SWAP'))
+
 
 if __name__ == "__main__":
     unittest.main()
