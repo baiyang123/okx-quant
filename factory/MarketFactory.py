@@ -90,6 +90,8 @@ class MarketFactory:
         after_datetime = datetime.strptime(after, date_format)
         before_timestamp = int(time.mktime(before_datetime.timetuple()) * 1000)
         after_timestamp = int(time.mktime(after_datetime.timetuple()) * 1000)
+        # 超过300天分批查到1440天
+
         res = self.MarketApi.get_candlesticks(instId=instId, before=before_timestamp, after=after_timestamp, bar=bar, limit=1000)
         if res.get('code') == '0':
             df = pd.DataFrame(res.get('data'), columns=self.columns)
