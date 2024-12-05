@@ -134,3 +134,9 @@ def trend_work(*args):
 
 if __name__ == '__main__':
     pass
+
+
+
+# 多均线 https://www.fmz.com/strategy/47144
+# 经典均线 https://www.fmz.com/m/copy-strategy/12348 *
+# https://www.fmz.com/syntax-guide

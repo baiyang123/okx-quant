@@ -134,7 +134,7 @@ class trend:
                 else:
                     # 割肉
                     print('卖出')
-                    remaining = testing_df.iloc[-1]['remaining']+testing_df.iloc[-1]['num']*self.current_value
+                    remaining = round(testing_df.iloc[-1]['remaining']+testing_df.iloc[-1]['num']*self.current_value,2)
                     data = [ts, 's', self.current_value, 0, remaining, remaining]
                     testing_df.loc[len(testing_df.index)] = data
                     testing_df.to_csv(file_path, index=False)

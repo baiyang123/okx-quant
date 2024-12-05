@@ -78,6 +78,6 @@ class back_testing:
 
 
 if __name__ == '__main__':
-    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2024-01-01', '2024-12-01', '1D', 50000, 3, trend()
+    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2024-03-05', '2024-11-07', '1D', 50000, 3, trend()
     back_testing().backtesting(instId, before, after, bar, money, lever, class_name)
 
