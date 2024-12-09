@@ -31,6 +31,7 @@ class moving:
         self.money = 0  # 总金额
         self.current_value = 0  # 当前币种金额
         self.STATE_IDLE = -1  # -1空仓。long，short
+        self.cost = 0
 
     def strategy(self, ts):
         print(ts, self.current_value)
@@ -62,7 +63,7 @@ class moving:
             if testing_df.shape[0] == 0:
                 # 开多单
                 print('无记录下初始单--------------------')
-                num = round(self.money / self.current_value, 2) - 0.01
+                num = round(self.money / self.current_value - 0.01, 2)
                 remaining = round(self.money - self.current_value * num, 2)
                 all = round(remaining + self.current_value * num, 2)
                 data = [[ts, 'b', self.current_value, num, remaining, all]]
@@ -76,7 +77,7 @@ class moving:
             else:
                 # 无持仓下单
                 print('无持仓则下单--------------------')
-                num = round(testing_df.iloc[-1]['all'] / self.current_value, 2) - 0.01
+                num = round(testing_df.iloc[-1]['all'] / self.current_value - 0.01, 2)
                 remaining = round(testing_df.iloc[-1]['all'] - self.current_value * num, 2)
                 all = round(remaining + self.current_value * num, 2)
                 data = [ts, 'b', self.current_value, num, remaining, all]

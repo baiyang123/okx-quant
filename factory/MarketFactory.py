@@ -88,6 +88,7 @@ class MarketFactory:
         date_format = "%Y-%m-%d"
         before_datetime = datetime.strptime(before, date_format)
         after_datetime = datetime.strptime(after, date_format)
+        print(before_datetime, after_datetime)
         before_timestamp = int(time.mktime(before_datetime.timetuple()) * 1000)
         after_timestamp = int(time.mktime(after_datetime.timetuple()) * 1000)
         # 超过300天分批查到1440天

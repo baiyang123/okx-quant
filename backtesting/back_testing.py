@@ -26,14 +26,14 @@ class back_testing:
 
     def backtesting(self, instId, before, after, bar, money, lever, class_name):
         # 1. 获取区间数据, 并生成
-        days = 30
         class_name.money = money
         class_name.instId = instId
         class_name.bar = bar
 
-        # datetime_time = datetime.strptime(before, "%Y-%m-%d")
-        # before_obj = datetime_time - timedelta(days=days)
-        # before = before_obj.strftime("%Y-%m-%d")
+        # 由于时差okx时间线需要向后平移两天
+        datetime_time = datetime.strptime(after, "%Y-%m-%d")
+        after_obj = datetime_time - timedelta(days=-2)
+        after = after_obj.strftime("%Y-%m-%d")
 
         res, msg, income, percentage = MarketFactory().get_history_data(instId, before, after, bar)
         # 准备持仓文件
@@ -49,9 +49,10 @@ class back_testing:
         if res:
             df = pd.read_csv('{}/history_data/history_data_{}_{}.csv'.format(root_dir, instId, bar))
             df_sorted_by_column = df.sort_values(by='ts', ascending=True)
-            i = 0
-            while i < df_sorted_by_column.shape[0] - days:
-                df_ts = df_sorted_by_column.iloc[i+days]
+            # 由于均线理论从前两天的均线看所以向后平移两天
+            i = 2
+            while i < df_sorted_by_column.shape[0]:
+                df_ts = df_sorted_by_column.iloc[i]
                 i = i + 1
                 # todo getattr 写法
                 class_name.current_value = df_ts.loc['c']
@@ -85,6 +86,6 @@ class back_testing:
 
 
 if __name__ == '__main__':
-    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2024-03-05', '2024-11-07', '1D', 50000, 3, moving()
+    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2024-03-05', '2024-11-05', '1D', 50000, 3, moving()
     back_testing().backtesting(instId, before, after, bar, money, lever, class_name)
 
