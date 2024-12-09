@@ -85,43 +85,64 @@ class MarketFactory:
     '''
     # 历史数据查询并生成文件，便于后续回测
     def get_history_data(self, instId, before, after, bar):
+        history_data_list = []
+        data_res = True
         date_format = "%Y-%m-%d"
         before_datetime = datetime.strptime(before, date_format)
         after_datetime = datetime.strptime(after, date_format)
-        print(before_datetime, after_datetime)
-        before_timestamp = int(time.mktime(before_datetime.timetuple()) * 1000)
-        after_timestamp = int(time.mktime(after_datetime.timetuple()) * 1000)
-        # 超过300天分批查到1440天
 
-        res = self.MarketApi.get_candlesticks(instId=instId, before=before_timestamp, after=after_timestamp, bar=bar, limit=1000)
-        if res.get('code') == '0':
-            df = pd.DataFrame(res.get('data'), columns=self.columns)
-            df['h'] = df['h'].astype(float)
-            df['l'] = df['l'].astype(float)
-            df['c'] = df['c'].astype(float)
-            df['ts'] = df['ts'].astype(str)
-            # 只取日期中的某些信息：dt.XXXX (XXXX= date、time、hour、year、month、day)
-            df['ts'] = pd.to_datetime(df['ts'], unit='ms').dt.date
-            income = df['c'].iloc[0]-df['c'].iloc[-1]
-            percentage = round(income/df['c'].iloc[-1]*100, 2)
-            df_sorted_by_column = df.sort_values(by='ts', ascending=True)
-            df_sorted_by_column['ma5'] = round(df_sorted_by_column['c'].rolling(5).mean(), 2)
-            df_sorted_by_column['ma20'] = round(df_sorted_by_column['c'].rolling(20).mean(), 2)
-            # 设置均线
-            filled_df = df_sorted_by_column.copy().fillna(0)
-            filled_df.to_csv('{}/history_data/history_data_{}_{}.csv'.format(root_dir, instId, bar), index=False)
-            # plt.plot(df['ts'], df['c'])
-            # plt.xlabel('时间')
-            # plt.ylabel('价格')
-            # 设置Matplotlib的中文字体
-            # plt.rcParams['font.sans-serif'] = ['SimHei']
-            # plt.show()
+        delta = after_datetime - before_datetime
 
+        time_bar = bar[1]
+        if time_bar == 'D':
+            delta = delta.days
+
+        # okx最多返回1440条数据，每次返回300分页
+        if delta > 1440:
+            raise Exception('周期差不能超过1440')
         else:
-            return False, res.get('msg'), 0, 0
+            while before_datetime < after_datetime:
+                before_timestamp = int(time.mktime(before_datetime.timetuple()) * 1000)
+                after_datetime_n = before_datetime-timedelta(days=-300) if before_datetime-timedelta(days=-300) < after_datetime else after_datetime
+                after_timestamp = int(time.mktime(after_datetime_n.timetuple()) * 1000)
+                # 超过300天分批查到1440天,拼接结果
+                res = self.MarketApi.get_candlesticks(instId=instId, before=before_timestamp, after=after_timestamp, bar=bar, limit=1000)
+                if res.get('code') == '0':
+                    # 如果用append未改变原值
+                    history_data_list = history_data_list + res.get('data')
+                    before_datetime = before_datetime-timedelta(days=-209)
+                else:
+                    data_res = False
+                    break
+
+            if data_res:
+                df = pd.DataFrame(history_data_list, columns=self.columns)
+                df['h'] = df['h'].astype(float)
+                df['l'] = df['l'].astype(float)
+                df['c'] = df['c'].astype(float)
+                df['ts'] = df['ts'].astype(str)
+                # 只取日期中的某些信息：dt.XXXX (XXXX= date、time、hour、year、month、day)
+                df['ts'] = pd.to_datetime(df['ts'], unit='ms').dt.date
+                income = df['c'].iloc[0]-df['c'].iloc[-1]
+                percentage = round(income/df['c'].iloc[-1]*100, 2)
+                df_sorted_by_column = df.sort_values(by='ts', ascending=True)
+                df_sorted_by_column['ma5'] = round(df_sorted_by_column['c'].rolling(5).mean(), 2)
+                df_sorted_by_column['ma20'] = round(df_sorted_by_column['c'].rolling(20).mean(), 2)
+                # 设置均线
+                filled_df = df_sorted_by_column.copy().fillna(0)
+                filled_df.to_csv('{}/history_data/history_data_{}_{}.csv'.format(root_dir, instId, bar), index=False)
+                # plt.plot(df['ts'], df['c'])
+                # plt.xlabel('时间')
+                # plt.ylabel('价格')
+                # 设置Matplotlib的中文字体
+                # plt.rcParams['font.sans-serif'] = ['SimHei']
+                # plt.show()
+
+            else:
+                return False, res.get('msg'), 0, 0
         return True, res.get('msg'), income, str(percentage)+'%'
 
 
 if __name__ == '__main__':
     # print(MarketFactory().get_grid_box())
-    print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2024-11-01', '2024-11-28', '1D'))
+    print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D'))

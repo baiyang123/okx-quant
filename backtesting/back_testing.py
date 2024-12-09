@@ -73,7 +73,7 @@ class back_testing:
             plt.plot(pd.to_datetime(df_testing['ts']), round(df_testing['value']/value_start, 2), label='value')
 
             plt.xlabel('时间')
-            plt.ylabel('总金额')
+            plt.ylabel('总收益')
             # x轴倾斜45读
             plt.xticks(rotation=45)
             # 控制画板自适应大小
@@ -86,6 +86,6 @@ class back_testing:
 
 
 if __name__ == '__main__':
-    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2024-03-05', '2024-11-05', '1D', 50000, 3, moving()
+    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D', 50000, 3, moving()
     back_testing().backtesting(instId, before, after, bar, money, lever, class_name)
 
