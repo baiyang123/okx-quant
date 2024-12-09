@@ -4,7 +4,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from factory.MarketFactory import MarketFactory
-from backtesting.trend_testing import trend
+from backtesting.moving_testing import moving
+
 
 import sys
 import os
@@ -12,6 +13,10 @@ import os
 import pathlib
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
+
+'''
+回测总触发器
+'''
 
 
 class back_testing:
@@ -21,12 +26,14 @@ class back_testing:
 
     def backtesting(self, instId, before, after, bar, money, lever, class_name):
         # 1. 获取区间数据, 并生成
-        days = class_name.days
+        days = 30
         class_name.money = money
+        class_name.instId = instId
+        class_name.bar = bar
 
-        datetime_time = datetime.strptime(before, "%Y-%m-%d")
-        before_obj = datetime_time - timedelta(days=days)
-        before = before_obj.strftime("%Y-%m-%d")
+        # datetime_time = datetime.strptime(before, "%Y-%m-%d")
+        # before_obj = datetime_time - timedelta(days=days)
+        # before = before_obj.strftime("%Y-%m-%d")
 
         res, msg, income, percentage = MarketFactory().get_history_data(instId, before, after, bar)
         # 准备持仓文件
@@ -78,6 +85,6 @@ class back_testing:
 
 
 if __name__ == '__main__':
-    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2024-03-05', '2024-11-07', '1D', 50000, 3, trend()
+    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2024-03-05', '2024-11-07', '1D', 50000, 3, moving()
     back_testing().backtesting(instId, before, after, bar, money, lever, class_name)
 
