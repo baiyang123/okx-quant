@@ -108,7 +108,6 @@ class MarketFactory:
                 # 超过300天分批查到1440天,拼接结果
                 res = self.MarketApi.get_candlesticks(instId=instId, before=before_timestamp, after=after_timestamp, bar=bar, limit=1000)
                 if res.get('code') == '0':
-                    # 如果用append未改变原值
                     # history_data_list = history_data_list + res.get('data')
                     history_data_list.extend(res.get('data'))
                     before_datetime = before_datetime-timedelta(days=-209)
