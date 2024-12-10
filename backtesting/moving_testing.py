@@ -34,7 +34,7 @@ class moving:
         self.cost = 0
 
     def strategy(self, ts):
-        print(ts, self.current_value)
+        logger.info(ts, self.current_value)
         # 空仓
         state = self.STATE_IDLE
         entryPrice = 0  # 成本
@@ -62,7 +62,7 @@ class moving:
         if (pre_fastPeriod < pre_slowPeriod) and (fastPeriod > slowPeriod):
             if testing_df.shape[0] == 0:
                 # 开多单
-                print('无记录下初始单--------------------')
+                logger.info('无记录下初始单--------------------')
                 num = round(self.money / self.current_value - 0.01, 2)
                 remaining = round(self.money - self.current_value * num, 2)
                 all = round(remaining + self.current_value * num, 2)
@@ -76,7 +76,7 @@ class moving:
                 self.STATE_IDLE = 'long'
             else:
                 # 无持仓下单
-                print('无持仓则下单--------------------')
+                logger.info('无持仓则下单--------------------')
                 num = round(testing_df.iloc[-1]['all'] / self.current_value - 0.01, 2)
                 remaining = round(testing_df.iloc[-1]['all'] - self.current_value * num, 2)
                 all = round(remaining + self.current_value * num, 2)
@@ -87,21 +87,21 @@ class moving:
                 self.cost = self.current_value
         elif (pre_fastPeriod > pre_slowPeriod) and (fastPeriod < slowPeriod):
             if testing_df.shape[0] == 0:
-                print('初始无操作')
+                logger.info('初始无操作')
                 data = [[ts, 'o', self.current_value, 0, self.money, self.money]]
                 df = pd.DataFrame(data, columns=['ts', 'operate', 'value', 'num', 'remaining', 'all'])
                 df.to_csv(file_path, index=False)
             else:
                 if self.cost == 0:
                     # 已经无持仓
-                    print('已无持仓')
+                    logger.info('已无持仓')
                     data = [ts, 'o', self.current_value, 0, testing_df.iloc[-1]['remaining'],
                             testing_df.iloc[-1]['all']]
                     testing_df.loc[len(testing_df.index)] = data
                     testing_df.to_csv(file_path, index=False)
                 else:
                     # 卖出
-                    print('卖出')
+                    logger.info('卖出')
                     remaining = round(
                         testing_df.iloc[-1]['remaining'] + testing_df.iloc[-1]['num'] * self.current_value, 2)
                     data = [ts, 's', self.current_value, 0, remaining, remaining]
@@ -111,13 +111,13 @@ class moving:
                     self.order(data)
         else:
             if testing_df.shape[0] == 0:
-                print('初始无操作')
+                logger.info('初始无操作')
                 data = [[ts, 'o', self.current_value, 0, self.money, self.money]]
                 df = pd.DataFrame(data, columns=['ts', 'operate', 'value', 'num', 'remaining', 'all'])
                 df.to_csv(file_path, index=False)
             else:
                 # 不动
-                print('不动')
+                logger.info('不动')
                 remaining = testing_df.iloc[-1]['remaining']
                 all = round(remaining + self.current_value * testing_df.iloc[-1]['num'], 2)
                 data = [ts, 'o', self.current_value, testing_df.iloc[-1]['num'], remaining, all]
@@ -127,7 +127,7 @@ class moving:
 
 
     def order(self, *args):
-        print('下单', args)
+        logger.info(args)
 
 
 
