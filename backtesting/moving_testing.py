@@ -127,6 +127,7 @@ class moving:
 
 
     def order(self, *args):
+        # todo这里可以继续添加发送邮箱等操作
         logger.info(args)
 
 
