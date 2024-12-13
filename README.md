@@ -3,3 +3,4 @@
 1. 回测总触发器为backtesting目录下back_testing
 2. 策略为strategy目录
 3. 先通过MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D')获取历史数据，再去跑回测
+4. 封装的方法在factory下

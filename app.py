@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_apscheduler import APScheduler
-from strategy.grid_dynamics import contract_grid_work
+from task import moving_task
 
 app = Flask(__name__)
 
@@ -20,8 +20,8 @@ def init_app(profile_path):
         scheduler.init_app(app)
 
         # 网格任务
-        scheduler.add_job(func=contract_grid_work, trigger='cron', day="*", hour='*', minute='*', second='30',
-                          id='contract_grid_work', args=[app])
+        scheduler.add_job(func=moving_task(), trigger='cron', day="*", hour='*', minute='*', second='30',
+                          id='moving_task', args=[app])
 
         # 样例
         # scheduler.add_job(func=hrm_entry_task, trigger='cron', day="*", hour='*', minute='*', second='30',
