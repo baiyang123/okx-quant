@@ -1,6 +1,6 @@
 ENV = 'PRD'
 TASK_SWITCH = True
-PASSPHRASE = 'Baiyang18!'
+PASSPHRASE = ''
 '''
 # instId, before, after, bar, money, lever, class_name = 'ETC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D', 50000, 3, moving()
 # self.FastPeriod = 5  # 入市快线周期
