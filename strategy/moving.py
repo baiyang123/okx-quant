@@ -27,7 +27,7 @@ class moving:
         #     super().__init__(db_session, context)
         #     self.app_context = context
         self.STATE_IDLE = -1  # -1空仓。long，short 暂时未启用
-        self.strategy_code = 'X-USDT-SWAP_MA'
+        self.strategy_code = 'BTC-USDT-SWAP_MA'
 
     def strategy(self):
         # 补try catch
@@ -62,11 +62,11 @@ class moving:
             ts =datetime.now().strftime("%Y-%m-%d")
 
             # 获取最小下单份额
-            round = af().get_lotSz(self.strategy_code)
+            round_int = af().get_lotSz(self.strategy_code)
 
             # 获取产品信息
             ticket_info = mf().get_ticker_info(self.strategy_code)
-            current_value = ticket_info.get('last')
+            current_value = float(ticket_info.get('last'))
 
             data = {
                 'ts': ts,
@@ -79,15 +79,19 @@ class moving:
             if (pre_fastPeriod < pre_slowPeriod) and (fastPeriod > slowPeriod):
                 if acc_res.get('pos') == '0':
                     logger.info('无仓位下多单')
-                    num = round(acc_res.get('availBal') * positionRatio * level / current_value, round)
-                    data['side'] = 'buy'
-                    data['posSide'] = 'long'
-                    data['num'] = num
-                    slTriggerPx = current_value*(1-stopLossRatio)
-                    data['attachAlgoOrds'] = [{'slTriggerPx': slTriggerPx, 'tpOrdPx': '-1', 'sz': num, 'tpTriggerPxType': 'last'}]
-                    # 下单
-                    tf().order(data, self.strategy_code)
-                    self.STATE_IDLE = 'long'
+                    if round_int == 0:
+                        num = int(acc_res.get('availBal') * positionRatio * level / current_value)
+                    else:
+                        num_float = acc_res.get('availBal') * positionRatio * level / current_value
+                        num = round(num_float, round_int)
+                data['side'] = 'buy'
+                data['posSide'] = 'long'
+                data['num'] = num
+                slTriggerPx = current_value*(1-stopLossRatio)
+                data['attachAlgoOrds'] = [{'slTriggerPx': slTriggerPx, 'slOrdPx': '-1', 'slTriggerPxType': 'last'}]
+                # 下单
+                tf().order(data, self.strategy_code)
+                self.STATE_IDLE = 'long'
 
             # 下单的时候直接把止损下进去保证及时，如果高频的话也可以用if判断比例止损，方便记录每次操作
             elif (pre_exitFastPeriod > pre_exitSlowPeriod) and (exitFastPeriod < exitSlowPeriod):
@@ -112,7 +116,7 @@ class moving:
 
 
 if __name__ == '__main__':
-    print(moving().strategy())
+    moving().strategy()
 
 
 
