@@ -53,12 +53,12 @@ class AccountFactory:
         if pos_res.get('code') == '0' and len(pos_res.get('data'))!=0:
             pos_inst = pos_res.get('data')[0]
             res['mgnMode'] = pos_inst.get('mgnMode'),  # 保证金模式isolated：逐仓
-            res['posSide'] =  pos_inst.get('posSide'),  # 持仓方向 long short
+            res['posSide'] = pos_inst.get('posSide'),  # 持仓方向 long short
             res['pos'] = pos_inst.get('pos'),  # 持仓数量 张
             res['avgPx'] = pos_inst.get('avgPx'),  # 开仓均价
             res['lever'] = pos_inst.get('lever'),  # 杠杆倍数
-            res['liqPx'] =  pos_inst.get('liqPx'),  # 强平价
-            res['markPx'] =  pos_inst.get('markPx'),  # 最新标记价格
+            res['liqPx'] = pos_inst.get('liqPx'),  # 强平价
+            res['markPx'] = pos_inst.get('markPx'),  # 最新标记价格
             res['margin'] = pos_inst.get('margin'),  # 保证金余额
             res['mgnRatio'] = pos_inst.get('mgnRatio'),  # 保证金率
             res['notionalUsd'] = pos_inst.get('mgnRatio'),  # 保证金率
