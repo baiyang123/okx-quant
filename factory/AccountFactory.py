@@ -50,7 +50,7 @@ class AccountFactory:
         instId = strategy_config.get('instId')
         # 仓位
         pos_res = self.AccountApi.get_positions(instId=instId)
-        if pos_res.get('code') == '0' and len(pos_res.get('data'))!=0:
+        if pos_res.get('code') == '0' and len(pos_res.get('data')) != 0:
             pos_inst = pos_res.get('data')[0]
             res['mgnMode'] = pos_inst.get('mgnMode'),  # 保证金模式isolated：逐仓
             res['posSide'] = pos_inst.get('posSide'),  # 持仓方向 long short
