@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_apscheduler import APScheduler
-from task import moving_task
+from task.moving_task import moving_task
 
 app = Flask(__name__)
 
@@ -19,9 +19,9 @@ def init_app(profile_path):
         scheduler = APScheduler()
         scheduler.init_app(app)
 
-        # 网格任务
-        scheduler.add_job(func=moving_task(), trigger='cron', day="*", hour='*', minute='*', second='30',
-                          id='moving_task', args=[app])
+        # ma任务
+        scheduler.add_job(func=moving_task, trigger='cron', day='*', hour='*', minute='*', second='00',
+                          id='moving_task_01', args=[app])
 
         # 样例
         # scheduler.add_job(func=hrm_entry_task, trigger='cron', day="*", hour='*', minute='*', second='30',

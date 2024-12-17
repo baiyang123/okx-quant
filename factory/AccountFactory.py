@@ -31,12 +31,6 @@ class AccountFactory:
         totalEq = float(acc_res.get('data')[0].get('totalEq'))
         isoEq = float(acc_res.get('data')[0].get('isoEq'))
 
-        instId = strategy_config.get('instId')
-        # 仓位
-        pos_res = self.AccountApi.get_positions(instId=instId)
-        if pos_res.get('code') == '0':
-            pos_inst = pos_res.get('data')[0]
-
         # 目前这里只出了部分有用的字段 https://www.okx.com/docs-v5/zh/#trading-account-rest-api-get-positions
         '''
         realizedPnl	String	已实现收益
@@ -51,21 +45,28 @@ class AccountFactory:
             'totalEq': totalEq,  # 美金层面权益 账户总金额
             'isoEq': isoEq,  # 币种逐仓仓位权益 仓位总金额
             'availBal': float(availBal),  # 可用余额
-            'mgnMode': pos_inst.get('mgnMode'),  # 保证金模式isolated：逐仓
-            'posSide': pos_inst.get('posSide'),  # 持仓方向 long short
-            'pos': pos_inst.get('pos'),  # 持仓数量 张
-            'avgPx': pos_inst.get('avgPx'),  # 开仓均价
-            'lever': pos_inst.get('lever'),  # 杠杆倍数
-            'liqPx': pos_inst.get('liqPx'),  # 强平价
-            'markPx': pos_inst.get('markPx'),  # 最新标记价格
-            'margin': pos_inst.get('margin'),  # 保证金余额
-            'mgnRatio': pos_inst.get('mgnRatio'),  # 保证金率
-            'notionalUsd': pos_inst.get('notionalUsd'),  # 美金价值为单位的持仓数量 仓位价值
-            'bePx': pos_inst.get('bePx'),  # 盈亏平衡价
-            'upl': pos_inst.get('upl'),  # 未实现收益
-            'uplRatio': pos_inst.get('uplRatio'),  # 未实现收益率
-            'realizedPnl': pos_inst.get('realizedPnl'),  # 已实现收益（手续费什么的，加上已经平了的部分收益）
         }
+
+        instId = strategy_config.get('instId')
+        # 仓位
+        pos_res = self.AccountApi.get_positions(instId=instId)
+        if pos_res.get('code') == '0' and len(pos_res.get('data'))!=0:
+            pos_inst = pos_res.get('data')[0]
+            res['mgnMode'] = pos_inst.get('mgnMode'),  # 保证金模式isolated：逐仓
+            res['posSide'] =  pos_inst.get('posSide'),  # 持仓方向 long short
+            res['pos'] = pos_inst.get('pos'),  # 持仓数量 张
+            res['avgPx'] = pos_inst.get('avgPx'),  # 开仓均价
+            res['lever'] = pos_inst.get('lever'),  # 杠杆倍数
+            res['liqPx'] =  pos_inst.get('liqPx'),  # 强平价
+            res['markPx'] =  pos_inst.get('markPx'),  # 最新标记价格
+            res['margin'] = pos_inst.get('margin'),  # 保证金余额
+            res['mgnRatio'] = pos_inst.get('mgnRatio'),  # 保证金率
+            res['notionalUsd'] = pos_inst.get('mgnRatio'),  # 保证金率
+            res['bePx'] = pos_inst.get('bePx'),  # 盈亏平衡价
+            res['upl'] = pos_inst.get('upl'),  # 未实现收益
+            res['uplRatio'] = pos_inst.get('uplRatio'),  # 未实现收益率
+            res['realizedPnl'] = pos_inst.get('realizedPnl'),  # 已实现收益（手续费什么的，加上已经平了的部分收益）
+
         return res
 
     def get_lotSz(self, strategy_code):

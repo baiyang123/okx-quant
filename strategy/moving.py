@@ -24,15 +24,15 @@ class moving:
 
     def __init__(self, db_session=None, context=None):
         # with context:
-        #     super().__init__(db_session, context)
+        #     # super().__init__(db_session, context)
         #     self.app_context = context
         self.STATE_IDLE = -1  # -1空仓。long，short 暂时未启用
         self.strategy_code = 'BTC-USDT-SWAP_MA'
 
     def strategy(self):
-        # 补try catch
+        # # 补try catch
         # with self.app_context:
-        #     pass
+
         try:
             strategy_config = STRATEGY_CONFIG.get(self.strategy_code)
             if strategy_config is None:
@@ -113,6 +113,8 @@ class moving:
                 tf().order(data, self.strategy_code)
         except Exception as e:
             logger.error(traceback.format_exc())
+        finally:
+            return True
 
 
 if __name__ == '__main__':
