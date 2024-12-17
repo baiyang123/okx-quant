@@ -26,7 +26,8 @@ STRATEGY_CONFIG = {
         'instType': 'SWAP',
         'stopLossRatio': 0.15,
         'interval': 10,
-        'ordType': 'market'
+        'ordType': 'market',
+        'flag': '0'
     },
     'X-USDT-SWAP_MA': {
         'instId': 'X-USDT-SWAP',
@@ -43,7 +44,8 @@ STRATEGY_CONFIG = {
         'instType': 'SWAP',
         'stopLossRatio': 0.15,
         'interval': 10,
-        'ordType': 'market'
+        'ordType': 'market',
+        'flag': '0'
     }
 }
 COLUMNS = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']

@@ -59,7 +59,7 @@ class moving:
 
             testing_df = pd.read_csv(file_path)
 
-
+            # todo 这里在实盘是现拿数据，而回测要先准备好数据，后续再写回测可抽出回测的公共方法，包括计算快慢线，下单
             if (pre_fastPeriod < pre_slowPeriod) and (fastPeriod > slowPeriod):
                 if testing_df.shape[0] == 0:
                     # 开多单

@@ -7,11 +7,11 @@ root_dir = pathlib.Path(__file__).resolve().parent.parent
 
 class AccountFactory:
 
-    def __init__(self):
+    def __init__(self, flag=0):
         api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
         api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
         passphrase = PASSPHRASE
-        self.AccountApi = Account.AccountAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag='0')
+        self.AccountApi = Account.AccountAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag=flag)
 
     # 获取余额以及仓位,可每天调用确定某个策略的收益，另写一方法计算每天的总收益
     def get_strategy_position(self, strategy_code):
@@ -50,6 +50,7 @@ class AccountFactory:
         instId = strategy_config.get('instId')
         # 仓位
         pos_res = self.AccountApi.get_positions(instId=instId)
+        # todo 这里以后如果支持一个策略扫多个品种会变成循环放list
         if pos_res.get('code') == '0' and len(pos_res.get('data')) != 0:
             pos_inst = pos_res.get('data')[0]
             res['mgnMode'] = pos_inst.get('mgnMode'),  # 保证金模式isolated：逐仓

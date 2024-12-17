@@ -20,7 +20,7 @@ def init_app(profile_path):
         scheduler.init_app(app)
 
         # ma任务
-        scheduler.add_job(func=moving_task, trigger='cron', day='*', hour='*', minute='*', second='00',
+        scheduler.add_job(func=moving_task, trigger='cron', day='*', hour='*', minute='00', second='00',
                           id='moving_task_01', args=[app])
 
         # 样例

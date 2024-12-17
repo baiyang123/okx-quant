@@ -15,11 +15,11 @@ root_dir = pathlib.Path(__file__).resolve().parent.parent
 
 class MarketFactory:
 
-    def __init__(self):
+    def __init__(self, flag=0):
         api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
         api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
         passphrase = PASSPHRASE
-        self.MarketApi = MarketData.MarketAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag='0')
+        self.MarketApi = MarketData.MarketAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag=flag)
         # self.columns = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']
         '''
         ts	String	开始时间，Unix时间戳的毫秒数格式，如 1597026383085

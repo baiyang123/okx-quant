@@ -38,9 +38,11 @@ class moving:
             if strategy_config is None:
                 logger.error('{}策略未配置'.format(self.strategy_code))
                 return False
+            # 配置决定是实盘还是虚拟盘 0实盘1虚拟盘
+            flag = strategy_config.get('flag')
             state = self.STATE_IDLE
             # 算快慢线（高频低频都可以现查）
-            fl_res = mf().get_fast_low_ma(self.strategy_code)
+            fl_res = mf(flag).get_fast_low_ma(self.strategy_code)
             # {'pre_fp': 98701.68, 'pre_sp': 97341.78, 'pre_efp': 98701.68, 'pre_esp': 97341.78, 'fp': 98860.36,
             # 'sp': 97435.88, 'efp': 98860.36, 'esp': 97435.88, 'c': 100532.9}
 
@@ -55,17 +57,17 @@ class moving:
             exitSlowPeriod = fl_res.get('esp')
 
             # 获取账户当前策略币种持仓以及可用金额（总金额以及配置的仓位）
-            acc_res = af().get_strategy_position(self.strategy_code)
+            acc_res = af(flag).get_strategy_position(self.strategy_code)
             positionRatio = strategy_config.get('positionRatio')
             level = strategy_config.get('level')
             stopLossRatio = strategy_config.get('stopLossRatio')
             ts =datetime.now().strftime("%Y-%m-%d")
 
             # 获取最小下单份额
-            round_int = af().get_lotSz(self.strategy_code)
+            round_int = af(flag).get_lotSz(self.strategy_code)
 
             # 获取产品信息
-            ticket_info = mf().get_ticker_info(self.strategy_code)
+            ticket_info = mf(flag).get_ticker_info(self.strategy_code)
             current_value = float(ticket_info.get('last'))
 
             data = {
@@ -90,7 +92,7 @@ class moving:
                 slTriggerPx = current_value*(1-stopLossRatio)
                 data['attachAlgoOrds'] = [{'slTriggerPx': slTriggerPx, 'slOrdPx': '-1', 'slTriggerPxType': 'last'}]
                 # 下单
-                tf().order(data, self.strategy_code)
+                tf(flag).order(data, self.strategy_code)
                 self.STATE_IDLE = 'long'
 
             # 下单的时候直接把止损下进去保证及时，如果高频的话也可以用if判断比例止损，方便记录每次操作
@@ -102,7 +104,7 @@ class moving:
                     data['num'] = num
                     data['side'] = 'sell'
                     data['posSide'] = 'long'
-                    tf().order(data, self.strategy_code)
+                    tf(flag).order(data, self.strategy_code)
             else:
                 # 后续考虑是否记录本次策略无操作
                 logger.info('本次轮训无操作')
@@ -110,7 +112,7 @@ class moving:
                 data['num'] = num
                 data['side'] = 'not'
                 data['posSide'] = 'long'
-                tf().order(data, self.strategy_code)
+                tf(flag).order(data, self.strategy_code)
         except Exception as e:
             logger.error(traceback.format_exc())
         finally:
