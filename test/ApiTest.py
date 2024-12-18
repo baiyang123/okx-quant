@@ -18,7 +18,7 @@ proxies = {
 
 
 # 验证网络联通性
-def test_market_tickers():
+def test_market_tickers_proxies():
      url = LOCALHOST + "/api/v5/public/instruments?instId=BTC-USDT-SWAP&instType=SWAP"
 
      response = requests.request('get', url, proxies=proxies)
