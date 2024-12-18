@@ -107,7 +107,7 @@ class moving:
                     tf(flag).order(data, self.strategy_code)
             else:
                 # 后续考虑是否记录本次策略无操作
-                logger.info('本次轮训无操作')
+                logger.info('本次轮询无操作')
                 num = 0
                 data['num'] = num
                 data['side'] = 'not'
