@@ -6,6 +6,7 @@ from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONF
 from okx import MarketData
 import numpy as np
 from factory.AccountFactory import AccountFactory as af
+import re
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
 
@@ -13,6 +14,12 @@ root_dir = pathlib.Path(__file__).resolve().parent.parent
 开始结束时间，币种，周期，初始资金，杠杆（默认1），网格：初始仓位，单网成交，网格距离，开仓点位，高低网边缘
 ---------------实盘疑虑使用get_fast_low_ma模式，入参策略code其他从配置文件获取---------------------------------
 '''
+
+# 准备一个正则拆分备用
+def separate_numbers_letters(s):
+    letters = re.findall('[a-zA-Z]', s)
+    numbers = re.findall('[0-9]', s)
+    return ''.join(letters), ''.join(numbers)
 
 
 class MarketFactory:
@@ -216,16 +223,23 @@ class MarketFactory:
         strategy_config = STRATEGY_CONFIG.get(strategy_code)
         instId = strategy_config.get('instId')
         boll_bar = strategy_config.get('boll_bar')
+        bar_unit = strategy_config.get('bar_unit')
         atr_bar = strategy_config.get('boll_bar')
         bar = strategy_config.get('bar')
+        bar_str = str(bar)+bar_unit
         flag = strategy_config.get('flag')
         after_datetime = datetime.now()
         after_timestamp = int(time.mktime(after_datetime.timetuple()) * 1000)
         # 默认20天的boll线
-        before_datetime = after_datetime - timedelta(days=boll_bar)
+        if bar_unit == 'Dutc':
+            before_datetime = after_datetime - timedelta(days=boll_bar)
+        elif bar_unit == 'H':
+            before_datetime = after_datetime - timedelta(hours=boll_bar)
+        elif bar_unit == 'm':
+            before_datetime = after_datetime - timedelta(minutes=boll_bar)
         before_timestamp = int(time.mktime(before_datetime.timetuple()) * 1000)
         res = self.MarketApi.get_candlesticks(instId=instId, before=before_timestamp, after=after_timestamp,
-                                              bar=bar,
+                                              bar=bar_str,
                                               limit=1000)
         if res.get('code') == '0':
             df = pd.DataFrame(res.get('data'), columns=COLUMNS)
@@ -255,6 +269,7 @@ class MarketFactory:
             return result
         else:
             raise Exception(res.get('msg'))
+
 
 if __name__ == '__main__':
     # print(MarketFactory().get_grid_box())

@@ -21,7 +21,10 @@ prd_pw = ''
 # self.ExitFastPeriod = 5  # 离市快线周期
 # self.ExitSlowPeriod = 20  # 离市慢线周期
 # # self.ExitPeriod = True  # 离市观察期
-# 0 生产 1模拟
+# 0 生产 1模拟  时间粒度，默认值1m
+# 如 [1m/3m/5m/15m/30m/1H/2H/4H]
+# 香港时间开盘价k线：[6H/12H/1D/2D/3D/1W/1M/3M]
+# UTC时间开盘价k线：[/6Hutc/12Hutc/1Dutc/2Dutc/3Dutc/1Wutc/1Mutc/3Mutc]
 '''
 STRATEGY_CONFIG = {
     'BTC-USDT-SWAP_MA': {
@@ -62,17 +65,20 @@ STRATEGY_CONFIG = {
     },
     'BTC-USDT-SWAP_GRID_INF': {
         'instId': 'BTC-USDT-SWAP',
-        'bar': '1Dutc',
+        'bar_unit': 'Dutc',
+        'bar': 1,
         'boll_bar': 20,
         'atr_bar': 14,
         'ccy': 'USDT',
         'positionRatio': 0.8,
-        'level': 3,
+        'level': 5,
         'instType': 'SWAP',
         'stopLossRatio': 0.15,
         'interval': 10,
         'ordType': 'market',
-        'flag': '1'
+        'flag': '1',
+        'initial_position': 0.2,
+        'grid_position': 0.05,
     },
 }
 COLUMNS = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']
