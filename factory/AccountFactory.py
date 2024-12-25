@@ -76,7 +76,6 @@ class AccountFactory:
         swap = strategy_config.get('instType')
         flag = strategy_config.get('flag')
         res = AccountFactory(flag).AccountApi.get_instruments(instType=swap, instId=instId)
-        print(res)
         if res.get('data')[0].get('lotSz') == '1':
             lotsz = 0
         else:
