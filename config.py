@@ -13,7 +13,7 @@ PASSPHRASE = ''
 STRATEGY_CONFIG = {
     'BTC-USDT-SWAP_MA': {
         'instId': 'BTC-USDT-SWAP',
-        'bar': '1D',
+        'bar': '1Dutc',
         'FastPeriod': 5,
         'SlowPeriod': 20,
         'EnterPeriod': 2,
@@ -31,7 +31,7 @@ STRATEGY_CONFIG = {
     },
     'X-USDT-SWAP_MA': {
         'instId': 'X-USDT-SWAP',
-        'bar': '1D',
+        'bar': '1Dutc',
         'FastPeriod': 5,
         'SlowPeriod': 20,
         'EnterPeriod': 2,
@@ -46,7 +46,21 @@ STRATEGY_CONFIG = {
         'interval': 10,
         'ordType': 'market',
         'flag': '0'
-    }
+    },
+    'BTC-USDT-SWAP_GRID_INF': {
+        'instId': 'BTC-USDT-SWAP',
+        'bar': '1Dutc',
+        'boll_bar': 20,
+        'atr_bar': 14,
+        'ccy': 'USDT',
+        'positionRatio': 0.8,
+        'level': 3,
+        'instType': 'SWAP',
+        'stopLossRatio': 0.15,
+        'interval': 10,
+        'ordType': 'market',
+        'flag': '0'
+    },
 }
 COLUMNS = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']
 ORDER_COLUMNS = ['ts', 'clOrdId', 'operate', 'posSide', 'value', 'num', 'all']

@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import pandas as pd
 from config import PASSPHRASE, STRATEGY_CONFIG, COLUMNS
 from okx import MarketData
+import numpy as np
+from factory.AccountFactory import AccountFactory as af
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
 
@@ -15,7 +17,7 @@ root_dir = pathlib.Path(__file__).resolve().parent.parent
 
 class MarketFactory:
 
-    def __init__(self, flag=0):
+    def __init__(self, flag='0'):
         api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
         api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
         passphrase = PASSPHRASE
@@ -145,6 +147,7 @@ class MarketFactory:
         FastPeriod = strategy_config.get('FastPeriod')
         ExitSlowPeriod = strategy_config.get('ExitSlowPeriod')
         ExitFastPeriod = strategy_config.get('ExitFastPeriod')
+        flag = strategy_config.get('flag')
         timedelta_bar = max(SlowPeriod, ExitSlowPeriod)
 
         after_datetime = datetime.now()
@@ -169,15 +172,17 @@ class MarketFactory:
         # 只取日期中的某些信息：dt.XXXX (XXXX= date、time、hour、year、month、day)
         df['ts'] = pd.to_datetime(df['ts'], unit='ms').dt.date
 
+        lotsz = af(flag).get_lotSz(strategy_code)
+
         df_sorted_by_column = df.sort_values(by='ts', ascending=True)
         df_sorted_by_column['ma_fp_{}'.format(FastPeriod)] = round(df_sorted_by_column['c'].rolling(FastPeriod).mean(),
-                                                                   2)
+                                                                   lotsz)
         df_sorted_by_column['ma_sp_{}'.format(SlowPeriod)] = round(df_sorted_by_column['c'].rolling(SlowPeriod).mean(),
-                                                                   2)
+                                                                   lotsz)
         df_sorted_by_column['ma_efp_{}'.format(ExitFastPeriod)] = round(df_sorted_by_column['c'].rolling(ExitFastPeriod)
-                                                                        .mean(), 2)
+                                                                        .mean(), lotsz)
         df_sorted_by_column['ma_esp_{}'.format(ExitSlowPeriod)] = round(df_sorted_by_column['c'].rolling(ExitSlowPeriod)
-                                                                        .mean(), 2)
+                                                                        .mean(), lotsz)
         # 设置均线
         filled_df = df_sorted_by_column.copy().fillna(0)
         # iloc为行列证书索引，loc为行列名索引
@@ -207,7 +212,52 @@ class MarketFactory:
         else:
             raise Exception(res.get('msg'))
 
+    def get_grid_info(self, strategy_code):
+        strategy_config = STRATEGY_CONFIG.get(strategy_code)
+        instId = strategy_config.get('instId')
+        boll_bar = strategy_config.get('boll_bar')
+        atr_bar = strategy_config.get('boll_bar')
+        bar = strategy_config.get('bar')
+        flag = strategy_config.get('flag')
+        after_datetime = datetime.now()
+        after_timestamp = int(time.mktime(after_datetime.timetuple()) * 1000)
+        # 默认20天的boll线
+        before_datetime = after_datetime - timedelta(days=boll_bar)
+        before_timestamp = int(time.mktime(before_datetime.timetuple()) * 1000)
+        res = self.MarketApi.get_candlesticks(instId=instId, before=before_timestamp, after=after_timestamp,
+                                              bar=bar,
+                                              limit=1000)
+        if res.get('code') == '0':
+            df = pd.DataFrame(res.get('data'), columns=COLUMNS)
+            df['c'] = df['c'].astype(float)
+            df['h'] = df['h'].astype(float)
+            df['l'] = df['l'].astype(float)
+            # boll中线
+            ma = df['c'].mean()
+            data_set = np.array(df['c'])
+            # 标准差
+            standard_deviation = np.std(data_set)
+            # 上下轨
+            ub = ma + 2 * standard_deviation
+            lb = ma - 2 * standard_deviation
+            # 20日平均波动，最新一天不算
+            df_atr = df.loc[1:14]
+            atr = (df_atr['h']-df_atr['l']).mean()
+            lotsz = af(flag).get_lotSz(strategy_code)
+            result = {
+                'boll_info': {
+                    'ma': round(ma, lotsz),
+                    'ub': round(ub, lotsz),
+                    'lb': round(lb, lotsz),
+                },
+                'atr': round(atr, lotsz)
+            }
+            return result
+        else:
+            raise Exception(res.get('msg'))
+
 if __name__ == '__main__':
     # print(MarketFactory().get_grid_box())
     # print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D'))
-    print(MarketFactory().get_ticker_info('BTC-USDT-SWAP_MA'))
+    # print(MarketFactory().get_ticker_info('BTC-USDT-SWAP_MA'))
+    print(MarketFactory('0').get_grid_info('BTC-USDT-SWAP_GRID_INF'))

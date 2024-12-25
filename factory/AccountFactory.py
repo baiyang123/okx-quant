@@ -7,7 +7,7 @@ root_dir = pathlib.Path(__file__).resolve().parent.parent
 
 class AccountFactory:
 
-    def __init__(self, flag=0):
+    def __init__(self, flag='0'):
         api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
         api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
         passphrase = PASSPHRASE
