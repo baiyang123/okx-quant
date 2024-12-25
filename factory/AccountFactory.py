@@ -1,5 +1,5 @@
 import pathlib
-from config import PASSPHRASE, STRATEGY_CONFIG
+from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG
 from okx import Account
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
@@ -8,9 +8,9 @@ root_dir = pathlib.Path(__file__).resolve().parent.parent
 class AccountFactory:
 
     def __init__(self, flag='0'):
-        api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
-        api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
-        passphrase = PASSPHRASE
+        api_key = prd_ak if flag == '0' else dev_ak
+        api_secret_key = prd_sk if flag == '0' else dev_sk
+        passphrase = prd_pw if flag == '0' else dev_pw
         self.AccountApi = Account.AccountAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag=flag)
 
     # 获取余额以及仓位,可每天调用确定某个策略的收益，另写一方法计算每天的总收益
@@ -74,7 +74,9 @@ class AccountFactory:
         strategy_config = STRATEGY_CONFIG.get(strategy_code)
         instId = strategy_config.get('instId')
         swap = strategy_config.get('instType')
-        res = self.AccountApi.get_instruments(instType=swap, instId=instId)
+        flag = strategy_config.get('flag')
+        res = AccountFactory(flag).AccountApi.get_instruments(instType=swap, instId=instId)
+        print(res)
         if res.get('data')[0].get('lotSz') == '1':
             lotsz = 0
         else:

@@ -2,7 +2,7 @@ import pathlib
 import time
 from datetime import datetime, timedelta
 import pandas as pd
-from config import PASSPHRASE, STRATEGY_CONFIG, COLUMNS
+from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG, COLUMNS
 from okx import MarketData
 import numpy as np
 from factory.AccountFactory import AccountFactory as af
@@ -18,9 +18,9 @@ root_dir = pathlib.Path(__file__).resolve().parent.parent
 class MarketFactory:
 
     def __init__(self, flag='0'):
-        api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
-        api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
-        passphrase = PASSPHRASE
+        api_key = prd_ak if flag == '0' else dev_ak
+        api_secret_key = prd_sk if flag == '0' else dev_sk
+        passphrase = prd_pw if flag == '0' else dev_pw
         self.MarketApi = MarketData.MarketAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag=flag)
         # self.columns = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']
         '''
@@ -241,7 +241,7 @@ class MarketFactory:
             ub = ma + 2 * standard_deviation
             lb = ma - 2 * standard_deviation
             # 20日平均波动，最新一天不算
-            df_atr = df.loc[1:14]
+            df_atr = df.loc[1 : atr_bar]
             atr = (df_atr['h']-df_atr['l']).mean()
             lotsz = af(flag).get_lotSz(strategy_code)
             result = {

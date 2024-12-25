@@ -3,7 +3,7 @@ import pathlib
 
 import pandas as pd
 
-from config import PASSPHRASE, STRATEGY_CONFIG, ORDER_PATH, ORDER_COLUMNS
+from config import  dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG, ORDER_PATH, ORDER_COLUMNS
 from okx import Trade
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
@@ -12,9 +12,9 @@ from loguru import logger
 class TradeFactory:
 
     def __init__(self, flag=0):
-        api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
-        api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
-        passphrase = PASSPHRASE
+        api_key = prd_ak if flag == '0' else dev_ak
+        api_secret_key = prd_sk if flag == '0' else dev_sk
+        passphrase = prd_pw if flag == '0' else dev_pw
         self.TradeAPI = Trade.TradeAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag=flag)
 
     def order(self, data, strategy_code):
