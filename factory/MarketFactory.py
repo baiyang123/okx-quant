@@ -2,7 +2,7 @@ import pathlib
 import time
 from datetime import datetime, timedelta
 import pandas as pd
-from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG, COLUMNS
+from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG, COLUMNS, STRATEGY_CLASS_CONFIG
 from okx import MarketData
 import numpy as np
 from factory.AccountFactory import AccountFactory as af
@@ -219,8 +219,15 @@ class MarketFactory:
         else:
             raise Exception(res.get('msg'))
 
-    def get_grid_info(self, strategy_code):
-        strategy_config = STRATEGY_CONFIG.get(strategy_code)
+    def get_ticker_info_by_instId(self, instId):
+        res = self.MarketApi.get_ticker(instId)
+        if res.get('code') == '0':
+            return res.get('data')[0]
+        else:
+            raise Exception(res.get('msg'))
+
+    def get_grid_info(self, strategy_class_name='', instId=''):
+        strategy_config = STRATEGY_CLASS_CONFIG.get(strategy_class_name).get(instId)
         instId = strategy_config.get('instId')
         boll_bar = strategy_config.get('boll_bar')
         bar_unit = strategy_config.get('bar_unit')
@@ -255,9 +262,9 @@ class MarketFactory:
             ub = ma + 2 * standard_deviation
             lb = ma - 2 * standard_deviation
             # 20日平均波动，最新一天不算
-            df_atr = df.loc[1 : atr_bar]
+            df_atr = df.loc[1: atr_bar]
             atr = (df_atr['h']-df_atr['l']).mean()
-            lotsz = af(flag).get_lotSz(strategy_code)
+            lotsz = af(flag).get_lotSz(strategy_class_name=strategy_class_name, instId=instId)
             result = {
                 'boll_info': {
                     'ma': round(ma, lotsz),
@@ -275,4 +282,4 @@ if __name__ == '__main__':
     # print(MarketFactory().get_grid_box())
     # print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D'))
     # print(MarketFactory().get_ticker_info('BTC-USDT-SWAP_MA'))
-    print(MarketFactory('0').get_grid_info('BTC-USDT-SWAP_GRID_INF'))
+    print(MarketFactory('0').get_grid_info('GridInf','BTC-USDT-SWAP'))

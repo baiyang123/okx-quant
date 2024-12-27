@@ -1,5 +1,5 @@
 import pathlib
-from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG
+from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG, STRATEGY_CLASS_CONFIG
 from okx import Account
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
@@ -14,8 +14,11 @@ class AccountFactory:
         self.AccountApi = Account.AccountAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag=flag)
 
     # 获取余额以及仓位,可每天调用确定某个策略的收益，另写一方法计算每天的总收益
-    def get_strategy_position(self, strategy_code):
-        strategy_config = STRATEGY_CONFIG.get(strategy_code)
+    def get_strategy_position(self, strategy_code='', strategy_class_name='', instId=''):
+        if strategy_code != '':
+            strategy_config = STRATEGY_CONFIG.get(strategy_code)
+        else:
+            strategy_config = STRATEGY_CLASS_CONFIG.get(strategy_class_name).get(instId)
         ccy = strategy_config.get('ccy')
         # 账户
         acc_res = self.AccountApi.get_account_balance(ccy=ccy)
@@ -50,28 +53,35 @@ class AccountFactory:
         instId = strategy_config.get('instId')
         # 仓位
         pos_res = self.AccountApi.get_positions(instId=instId)
+        print(pos_res)
         # todo 这里以后如果支持一个策略扫多个品种会变成循环放list
         if pos_res.get('code') == '0' and len(pos_res.get('data')) != 0:
-            pos_inst = pos_res.get('data')[0]
-            res['mgnMode'] = pos_inst.get('mgnMode'),  # 保证金模式isolated：逐仓
-            res['posSide'] = pos_inst.get('posSide'),  # 持仓方向 long short
-            res['pos'] = pos_inst.get('pos'),  # 持仓数量 张
-            res['avgPx'] = pos_inst.get('avgPx'),  # 开仓均价
-            res['lever'] = pos_inst.get('lever'),  # 杠杆倍数
-            res['liqPx'] = pos_inst.get('liqPx'),  # 强平价
-            res['markPx'] = pos_inst.get('markPx'),  # 最新标记价格
-            res['margin'] = pos_inst.get('margin'),  # 保证金余额
-            res['mgnRatio'] = pos_inst.get('mgnRatio'),  # 保证金率
-            res['notionalUsd'] = pos_inst.get('mgnRatio'),  # 保证金率
-            res['bePx'] = pos_inst.get('bePx'),  # 盈亏平衡价
-            res['upl'] = pos_inst.get('upl'),  # 未实现收益
-            res['uplRatio'] = pos_inst.get('uplRatio'),  # 未实现收益率
-            res['realizedPnl'] = pos_inst.get('realizedPnl'),  # 已实现收益（手续费什么的，加上已经平了的部分收益）
+            res['pos_res'] = pos_res['data']
+        else:
+            res['pos_res'] = []
+            # pos_inst = pos_res.get('data')[0]
+            # res['mgnMode'] = pos_inst.get('mgnMode'),  # 保证金模式isolated：逐仓
+            # res['posSide'] = pos_inst.get('posSide'),  # 持仓方向 long short
+            # res['pos'] = pos_inst.get('pos'),  # 持仓数量 张
+            # res['avgPx'] = pos_inst.get('avgPx'),  # 开仓均价
+            # res['lever'] = pos_inst.get('lever'),  # 杠杆倍数
+            # res['liqPx'] = pos_inst.get('liqPx'),  # 强平价
+            # res['markPx'] = pos_inst.get('markPx'),  # 最新标记价格
+            # res['margin'] = pos_inst.get('margin'),  # 保证金余额
+            # res['mgnRatio'] = pos_inst.get('mgnRatio'),  # 保证金率
+            # res['notionalUsd'] = pos_inst.get('mgnRatio'),  # 保证金率
+            # res['bePx'] = pos_inst.get('bePx'),  # 盈亏平衡价
+            # res['upl'] = pos_inst.get('upl'),  # 未实现收益
+            # res['uplRatio'] = pos_inst.get('uplRatio'),  # 未实现收益率
+            # res['realizedPnl'] = pos_inst.get('realizedPnl'),  # 已实现收益（手续费什么的，加上已经平了的部分收益）
 
         return res
 
-    def get_lotSz(self, strategy_code):
-        strategy_config = STRATEGY_CONFIG.get(strategy_code)
+    def get_lotSz(self, strategy_code='', strategy_class_name='', instId=''):
+        if strategy_code != '':
+            strategy_config = STRATEGY_CONFIG.get(strategy_code)
+        else:
+            strategy_config = STRATEGY_CLASS_CONFIG.get(strategy_class_name).get(instId)
         instId = strategy_config.get('instId')
         swap = strategy_config.get('instType')
         flag = strategy_config.get('flag')

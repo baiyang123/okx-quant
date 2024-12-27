@@ -57,7 +57,7 @@ class moving:
             exitSlowPeriod = fl_res.get('esp')
 
             # 获取账户当前策略币种持仓以及可用金额（总金额以及配置的仓位）
-            acc_res = af(flag).get_strategy_position(self.strategy_code)
+            acc_res = af(flag).get_strategy_position(strategy_code=self.strategy_code)
             positionRatio = strategy_config.get('positionRatio')
             level = strategy_config.get('level')
             stopLossRatio = strategy_config.get('stopLossRatio')
