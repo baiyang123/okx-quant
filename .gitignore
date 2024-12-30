@@ -10,3 +10,4 @@ test/api_test.py
 *.xml
 !*alicloud.xml
 !*stf.xml
+*.csv
