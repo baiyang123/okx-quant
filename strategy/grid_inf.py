@@ -66,6 +66,7 @@ class GridInf:
                 lever = strategy_config.get('lever')  # 杠杆
                 pos_direction = strategy_config.get('pos_direction')
                 initial_position = strategy_config.get('initial_position')
+                positionRatio = strategy_config.get('positionRatio')
                 grid_position = strategy_config.get('grid_position')
                 # 产品当前信息
                 ticket_info = mf(flag).get_ticker_info_by_instId(instId)
@@ -264,16 +265,15 @@ class GridInf:
                                             # LogProfit(account["Balance"]) # 记录盈亏值
                 # 无持仓
                 else:
-                    # ['instId', 'buyp', 'sellp', 'direction']
+                    # 底仓
+                    initial_num = round(initial_position * positionRatio * acc_res.get('availBal') * lever / (
+                            current_value * ctVal), lotsz)
+                    grid_num = round(grid_position * positionRatio * acc_res.get('availBal') * lever / (
+                            current_value * ctVal), lotsz)
                     # 大于上线，为做空区间
                     if float(ticket_info['last']) > float(grid_info['boll_info']['ub']):
                         # 双向或可空
                         if pos_direction in (1, 2):
-                            # 底仓
-                            initial_num = round(initial_position * acc_res.get('availBal') * lever / (
-                                            current_value * ctVal), lotsz)
-                            grid_num = round(grid_position * acc_res.get('availBal') * lever / (
-                                            current_value * ctVal), lotsz)
                             data['num'] = initial_num
                             data['side'] = 'sell'
                             data['posSide'] = 'short'
@@ -287,11 +287,6 @@ class GridInf:
                     else:
                         # 做多区间
                         if pos_direction in (0, 2):
-                            # 底仓
-                            initial_num = round(initial_position * acc_res.get('availBal') * lever / (
-                                        current_value * ctVal), lotsz)
-                            grid_num = round(grid_position * acc_res.get('availBal') * lever / (
-                                        current_value * ctVal), lotsz)
                             data['num'] = initial_num
                             data['side'] = 'buy'
                             data['posSide'] = 'long'
