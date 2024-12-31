@@ -77,7 +77,7 @@ class GridInf:
                 atr = grid_info.get('atr')
                 file_path = config_in_operation_path.format(root_dir)
                 # 读取当前币种持仓
-                # 一币等于多少张看 GET /api/v5/public/instruments todo 此处分母要乘以产品ctVal 币和张的换算关系，下单中一张（小单位）为单位
+                # 一币等于多少张看 GET /api/v5/public/instruments  此处分母要乘以产品ctVal 币和张的换算关系，下单中一张（小单位）为单位
                 instrument = mf(flag).get_instruments(strategy_class_name, instId)
                 ctVal = float(instrument.get('ctVal'))
                 acc_res = af(flag).get_strategy_position(strategy_class_name=strategy_class_name, instId=instId)
