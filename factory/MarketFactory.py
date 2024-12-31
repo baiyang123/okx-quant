@@ -275,7 +275,7 @@ class MarketFactory:
                     'ub': round(ub, lotsz),
                     'lb': round(lb, lotsz),
                 },
-                'atr': round((atr/frequency)*2, lotsz)  # 一天的震荡除以二上下各一半，允许一天触碰一次网格，可根据想要的频率改变
+                'atr': round(atr/(frequency*2), lotsz)  # 一天的震荡除以二上下各一半，允许一天触碰一次网格，可根据想要的频率改变
             }
             return result
         else:
