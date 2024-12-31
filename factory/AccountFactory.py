@@ -1,6 +1,7 @@
 import pathlib
 from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG, STRATEGY_CLASS_CONFIG
 from okx import Account
+from loguru import logger
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
 
@@ -53,7 +54,6 @@ class AccountFactory:
         instId = strategy_config.get('instId')
         # 仓位
         pos_res = self.AccountApi.get_positions(instId=instId)
-        print(pos_res)
         # todo 这里以后如果支持一个策略扫多个品种会变成循环放list
         if pos_res.get('code') == '0' and len(pos_res.get('data')) != 0:
             res['pos_res'] = pos_res['data']
@@ -92,9 +92,26 @@ class AccountFactory:
             lotsz = len((res.get('data')[0].get('lotSz')).split('.')[0])
         return lotsz
 
+    def set_levelage(self, strategy_code='', strategy_class_name='', instId=''):
+        if strategy_code != '':
+            strategy_config = STRATEGY_CONFIG.get(strategy_code)
+        else:
+            strategy_config = STRATEGY_CLASS_CONFIG.get(strategy_class_name).get(instId)
+        instId = strategy_config.get('instId')
+        lever = strategy_config.get('lever')
+        flag = strategy_config.get('flag')
+        long_res = AccountFactory(flag).AccountApi.set_leverage(instId=instId, lever=lever, mgnMode='isolated',
+                                                           posSide='long')
+        short_res = AccountFactory(flag).AccountApi.set_leverage(instId=instId, lever=lever, mgnMode='isolated',
+                                                           posSide='short')
+        if long_res.get('code') != '0' or short_res.get('code') != '0':
+            logger.error('设置杠杆失败{}-{}'.format(long_res, short_res))
+            raise Exception('设置杠杆失败{}-{}'.format(long_res, short_res))
+
 
 if __name__ == '__main__':
     # print(MarketFactory().get_grid_box())
     # print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D'))
-    # print(AccountFactory().get_strategy_position('X-USDT-SWAP_MA'))
-    print(AccountFactory().get_lotSz('BTC-USDT-SWAP_MA'))
+    # print(AccountFactory('1').get_strategy_position(strategy_class_name='GridInf', instId='BTC-USDT-SWAP'))
+    # print(AccountFactory().get_lotSz('BTC-USDT-SWAP_MA'))
+    print(AccountFactory('1').set_levelage(strategy_class_name='GridInf', instId='BTC-USDT-SWAP'))

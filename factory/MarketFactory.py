@@ -2,8 +2,10 @@ import pathlib
 import time
 from datetime import datetime, timedelta
 import pandas as pd
+from loguru import logger
+
 from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG, COLUMNS, STRATEGY_CLASS_CONFIG
-from okx import MarketData
+from okx import MarketData, PublicData
 import numpy as np
 from factory.AccountFactory import AccountFactory as af
 import re
@@ -29,6 +31,7 @@ class MarketFactory:
         api_secret_key = prd_sk if flag == '0' else dev_sk
         passphrase = prd_pw if flag == '0' else dev_pw
         self.MarketApi = MarketData.MarketAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag=flag)
+        self.PublicDataApi = PublicData.PublicAPI(api_key, api_secret_key, passphrase, use_server_time=False, flag=flag)
         # self.columns = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']
         '''
         ts	String	开始时间，Unix时间戳的毫秒数格式，如 1597026383085
@@ -235,6 +238,7 @@ class MarketFactory:
         bar = strategy_config.get('bar')
         bar_str = str(bar)+bar_unit
         flag = strategy_config.get('flag')
+        frequency = strategy_config.get('frequency')
         after_datetime = datetime.now()
         after_timestamp = int(time.mktime(after_datetime.timetuple()) * 1000)
         # 默认20天的boll线
@@ -271,11 +275,25 @@ class MarketFactory:
                     'ub': round(ub, lotsz),
                     'lb': round(lb, lotsz),
                 },
-                'atr': round(atr, lotsz)
+                'atr': round(atr/frequency*2, lotsz)  # 一天的震荡除以二上下各一半，允许一天触碰一次网格，可根据想要的频率改变
             }
             return result
         else:
             raise Exception(res.get('msg'))
+
+    def get_instruments(self, strategy_class_name='', instId=''):
+        logger.info('get_instruments{}-{}'.format(strategy_class_name, instId))
+        strategy_config = STRATEGY_CLASS_CONFIG.get(strategy_class_name).get(instId)
+        instType = strategy_config.get('instType')
+        res = self.PublicDataApi.get_instruments(instType=instType, instId=instId)
+        if res.get('code') != '0':
+            logger.error('获取交易产品基础信息失败{}'.format(res))
+            raise Exception(res.get('msg'))
+        else:
+            logger.info('获取交易产品基础信息成功{}'.format(res))
+            # 本方法必须指定币种所以返回一条
+            result = res.get('data')[0]
+        return result
 
 
 if __name__ == '__main__':

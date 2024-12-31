@@ -38,7 +38,7 @@ STRATEGY_CONFIG = {
         'ExitPeriod': True,
         'ccy': 'USDT',
         'positionRatio': 0.8,
-        'level': 3,
+        'lever': 3,
         'instType': 'SWAP',
         'stopLossRatio': 0.15,
         'interval': 10,
@@ -57,7 +57,7 @@ STRATEGY_CONFIG = {
         'ExitPeriod': True,
         'ccy': 'USDT',
         'positionRatio': 0.8,
-        'level': 3,
+        'lever': 3,
         'instType': 'SWAP',
         'stopLossRatio': 0.15,
         'interval': 10,
@@ -73,7 +73,7 @@ STRATEGY_CONFIG = {
         'atr_bar': 14,
         'ccy': 'USDT',
         'positionRatio': 0.8,
-        'level': 5,
+        'lever': 5,
         'instType': 'SWAP',
         'stopLossRatio': 0.15,
         'interval': 10,
@@ -87,27 +87,28 @@ STRATEGY_CONFIG = {
 }
 COLUMNS = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']
 ORDER_COLUMNS = ['ts', 'clOrdId', 'operate', 'posSide', 'value', 'num', 'all']
-GRID_INF_OPERATION_COLUMNS = ['instId', 'buyp', 'sellp', 'direction']
+GRID_INF_OPERATION_COLUMNS = ['instId', 'buyp', 'sellp', 'direction', 'initial_num', 'grid_num']
 ORDER_PATH = '{}/history_data/{}'
 STRATEGY_CLASS_CONFIG = {
     'GridInf': {
         'BTC-USDT-SWAP': {
             'instId': 'BTC-USDT-SWAP',
-            'bar_unit': 'Dutc',
+            'bar_unit': 'Dutc',  # 时间周期单位，香港
             'bar': 1,
             'boll_bar': 20,
-            'atr_bar': 14,
+            'atr_bar': 14,  # 算每天震荡均值
             'ccy': 'USDT',
-            'positionRatio': 0.8,
-            'level': 5,
+            'positionRatio': 0.8,  # 策略仓位
+            'lever': 5,
             'instType': 'SWAP',
-            'stopLossRatio': 0.15,
-            'interval': 10,
+            'stopLossRatio': 0.15,  # 止损比例
+            'interval': 10,  # 策略运行频率
             'ordType': 'market',
-            'flag': '1',
-            'initial_position': 0.2,
-            'grid_position': 0.05,
+            'flag': '1',  # 1模拟0实盘
+            'initial_position': 0.2,  # 底仓仓位
+            'grid_position': 0.05,  # 网格仓位
             'pos_direction': 2,  # 0做多1做空2双向
+            'frequency': 1,  # 每天的触网频率
         }
     }
 }

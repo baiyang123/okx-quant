@@ -59,7 +59,7 @@ class moving:
             # 获取账户当前策略币种持仓以及可用金额（总金额以及配置的仓位）
             acc_res = af(flag).get_strategy_position(strategy_code=self.strategy_code)
             positionRatio = strategy_config.get('positionRatio')
-            level = strategy_config.get('level')
+            lever = strategy_config.get('lever')
             stopLossRatio = strategy_config.get('stopLossRatio')
             ts =datetime.now().strftime("%Y-%m-%d")
 
@@ -82,9 +82,9 @@ class moving:
                 if acc_res.get('pos') == '0':
                     logger.info('无仓位下多单')
                     if round_int == 0:
-                        num = int(acc_res.get('availBal') * positionRatio * level / current_value)
+                        num = int(acc_res.get('availBal') * positionRatio * lever / current_value)
                     else:
-                        num_float = acc_res.get('availBal') * positionRatio * level / current_value
+                        num_float = acc_res.get('availBal') * positionRatio * lever / current_value
                         num = round(num_float, round_int)
                 data['side'] = 'buy'
                 data['posSide'] = 'long'
