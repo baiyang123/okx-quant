@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_apscheduler import APScheduler
 from task.moving_task import moving_task, grid_inf_task
+from loguru import logger
 
 app = Flask(__name__)
 
@@ -13,12 +14,14 @@ def hello_world():
 def init_app(profile_path):
     # 获取配置文件
     app.config.from_pyfile(profile_path)
+
+    logger.add("logs/logfile_{time:YYYY-MM-DD}.log", level="INFO", rotation="1 day")
+
     task_switch = app.config.get("TASK_SWITCH")
     # 开启定时任务
     if task_switch:
         scheduler = APScheduler()
         scheduler.init_app(app)
-
         # ma任务
         scheduler.add_job(func=grid_inf_task, trigger='cron', day='*', hour='*', minute='*',
                           id='grid_inf_task_01', args=[app])
