@@ -156,6 +156,8 @@ class GridInf:
                                         cacal_order_list.append(req)
                                     tf(flag).cancel_batch_order(cacal_order_list)
                                 tf(flag).close_positions(instId=instId, posSide=pos_variety.get('posSide'))
+                                # 止损后本轮终止
+                                return True
                             # 有空单仓位
                             if pos_variety.get('posSide') == 'short' and pos_direction in (1, 2):
                                 # 小于下线直接全部止盈
