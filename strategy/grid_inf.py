@@ -49,7 +49,8 @@ STRATEGY_CLASS_CONFIG = {
 平空：买入平空（side 填写 buy； posSide 填写 short ）
 '''
 
-
+# todo 无线网格如果沿着一个方向一直搞会导致仓位越来越极端，直到无仓或者满仓，这时要设置好上线布林线距离开仓点得位置，以谋求达到日均波动与布林线间距得最佳值
+# 大多数时候是涨的情况最坏止损且为原始仓位止损，这样不会高位梭哈，如果需要重跑只需要抹掉运行时配置即可
 class GridInf:
 
     def __init__(self):
@@ -86,6 +87,12 @@ class GridInf:
                             current_value * ctVal), lotsz)
                 grid_num_new = round(grid_position * acc_res.get('availBal') * lever / (
                             current_value * ctVal), lotsz)
+                # 判断当前是否有仓位
+                pos = False
+                for map in acc_res['pos_res']:
+                    if map.get('pos') != '0':
+                        pos = True
+                        break
                 # 网格上下买点 先获取之前是否有网格上下买点，如果有按照之前的加，没有初始化，如果有redis是最好的，直接放在redis里，没有使用全局变量或放在文件持久化
                 if not os.path.exists(file_path):
                     with open(file_path, "w") as file:
@@ -94,9 +101,19 @@ class GridInf:
                 else:
                     df = pd.read_csv(file_path)
                     if df.shape[0] == 0 or df[df['instId'] == instId].shape[0] == 0:
-                        buyp = current_value - atr
-                        sellp = current_value + atr
-                        df_data = [instId, buyp, sellp, 'no', 0, 0]
+                        buyp = round(current_value - atr, lotsz)
+                        sellp = round(current_value + atr, lotsz)
+                        # 如果有仓位 说明已有底仓，则去仓位得方向以及仓位作为初始化数据
+                        if pos:
+                            for pos_variety in acc_res.get('pos_res'):
+                                if pos_variety.get('pos') != '0' and pos_variety.get('instId') == instId:
+                                    df_data = [instId, buyp, sellp, pos_variety.get('posSide'), pos_variety.get('availPos'), grid_num_new]
+                                    grid_num = grid_num_new
+                                else:
+                                    df_data = [instId, buyp, sellp, 'no', 0, 0]
+                                    grid_num = 0
+                        else:
+                            df_data = [instId, buyp, sellp, 'no', 0, 0]
                         df.loc[len(df.index)] = df_data
                         df.to_csv(file_path, index=False)
                         logger.info('网格数据初始化，上下网为{}-{}'.format(sellp, buyp))
@@ -121,11 +138,6 @@ class GridInf:
                 # print(ticket_info)
                 # print(grid_info)
                 # print(acc_res)
-                pos = False
-                for map in acc_res['pos_res']:
-                    if map.get('pos') != '0':
-                        pos = True
-                        break
                 # 有持仓
                 if pos:
                     for pos_variety in acc_res.get('pos_res'):
@@ -157,6 +169,19 @@ class GridInf:
                                     # 平空单
                                     logger.info('到达开多区域,空单全部止盈反手{}份，当前价格{}'.format(num, current_value))
                                     tf(flag).order(data=data, strategy_class_name=strategy_class_name, instId=instId)
+                                    # 撤销所有预埋单
+                                    if len(orders) > 0:
+                                        cacal_order_list = []
+                                        for order in orders:
+                                            ordId = order.get('ordId')
+                                            req = {
+                                                'instId': instId,
+                                                'ordId': ordId
+                                            }
+                                            cacal_order_list.append(req)
+                                        tf(flag).cancel_batch_order(cacal_order_list)
+                                    # 重新拿仓位 这里暂时不在一次循环里拿 走递归容易出问题 todo 后续优化
+                                    # self.strategy()
                                 else:
                                     # 判断是否有未被消耗的上下网
                                     # 上下网都被吃掉了 或者网格减仓了
@@ -187,8 +212,8 @@ class GridInf:
                                         if orders[0]["side"] == 'buy':  # 止盈成交
                                             logger.info('止盈成交空单{}份，当前价格{}，继续埋网'.format(grid_num, current_value))
                                             ordId = orders[0].get('ordId')
-                                            buyp = buyp - atr
-                                            sellp = sellp - atr
+                                            buyp = round(buyp - atr, lotsz)
+                                            sellp = round(sellp - atr, lotsz)
                                             df.loc[df['instId'] == instId, 'buyp'] = buyp
                                             df.loc[df['instId'] == instId, 'sellp'] = sellp
                                             df.to_csv(file_path, index=False)
@@ -197,8 +222,8 @@ class GridInf:
                                         if orders[0]["side"] == 'sell':
                                             logger.info('网格加仓空单{}份，当前价格{}，继续埋网'.format(grid_num, current_value))
                                             ordId = orders[0].get('ordId')
-                                            buyp = buyp + atr
-                                            sellp = sellp + atr
+                                            buyp = round(buyp + atr, lotsz)
+                                            sellp = round(sellp + atr, lotsz)
                                             df.loc[df['instId'] == instId, 'buyp'] = buyp
                                             df.loc[df['instId'] == instId, 'sellp'] = sellp
                                             df.to_csv(file_path, index=False)
@@ -218,6 +243,19 @@ class GridInf:
                                     logger.info('到达开空区域,多单全部止盈反手{}份，当前价格{}'.format(num, current_value))
                                     tf(flag).order(data=data, strategy_class_name=strategy_class_name,
                                                          instId=instId)
+                                    # 撤销所有预埋单
+                                    if len(orders) > 0:
+                                        cacal_order_list = []
+                                        for order in orders:
+                                            ordId = order.get('ordId')
+                                            req = {
+                                                'instId': instId,
+                                                'ordId': ordId
+                                            }
+                                            cacal_order_list.append(req)
+                                        tf(flag).cancel_batch_order(cacal_order_list)
+                                    # 重新拿仓位 todo 后续优化
+                                    # self.strategy()
                                 else:
                                     if len(orders) == 0:
                                         # # 开多
@@ -246,8 +284,8 @@ class GridInf:
                                         if orders[0]["side"] == 'buy':  # 止盈成交
                                             logger.info('止盈成交多单{}份，当前价格{}，继续埋网'.format(grid_num, current_value))
                                             ordId = orders[0].get('ordId')
-                                            buyp = buyp + atr
-                                            sellp = sellp + atr
+                                            buyp = round(buyp + atr, lotsz)
+                                            sellp = round(sellp + atr, lotsz)
                                             df.loc[df['instId'] == instId, 'buyp'] = buyp
                                             df.loc[df['instId'] == instId, 'sellp'] = sellp
                                             df.to_csv(file_path, index=False)
@@ -256,8 +294,8 @@ class GridInf:
                                         if orders[0]["side"] == 'sell':
                                             logger.info('止损成交多单{}份，当前价格{}，继续埋网'.format(grid_num, current_value))
                                             ordId = orders[0].get('ordId')
-                                            buyp = buyp - atr
-                                            sellp = sellp - atr
+                                            buyp = round(buyp - atr, lotsz)
+                                            sellp = round(sellp - atr, lotsz)
                                             df.loc[df['instId'] == instId, 'buyp'] = buyp
                                             df.loc[df['instId'] == instId, 'sellp'] = sellp
                                             df.to_csv(file_path, index=False)
@@ -285,7 +323,7 @@ class GridInf:
                             logger.info('到达开空区域,买入空头底仓{}份，当前价格{}'.format(initial_num, current_value))
                             tf(flag).order(data=data, strategy_class_name=strategy_class_name, instId=instId)
                     else:
-                        # 做多区间
+                        # 做多区间 这里可以让低于下布林线为做多区间，在布林线间观望
                         if pos_direction in (0, 2):
                             data['num'] = initial_num
                             data['side'] = 'buy'

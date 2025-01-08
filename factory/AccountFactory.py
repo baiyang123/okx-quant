@@ -74,7 +74,7 @@ class AccountFactory:
             # res['upl'] = pos_inst.get('upl'),  # 未实现收益
             # res['uplRatio'] = pos_inst.get('uplRatio'),  # 未实现收益率
             # res['realizedPnl'] = pos_inst.get('realizedPnl'),  # 已实现收益（手续费什么的，加上已经平了的部分收益）
-
+        logger.info('获取当前仓位{}'.format(res))
         return res
 
     def get_lotSz(self, strategy_code='', strategy_class_name='', instId=''):

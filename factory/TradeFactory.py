@@ -31,7 +31,6 @@ class TradeFactory:
         num = data.get('num')
         ordType = data.get('ordType')
         attachAlgoOrds = data.get('attachAlgoOrds')
-        clOrdId = 'NOT'
         px = data.get('px')
 
         # 记录策略记录
@@ -70,14 +69,13 @@ class TradeFactory:
             if res.get('code') == '0':
                 # current_value 按照最后下单价格来,目前值写了单独下单，暂用data[0]后续优化
                 clOrdId = res['data'][0]['clOrdId']
+                # loc是整数位置，iloc是值 这里如果没有clOrdId 说明下单失败了
+                data_loc = [ts, clOrdId, side, posSide, current_value, num, all]
+                order_df.loc[loc] = data_loc
+                order_df.to_csv(file_path, index=False)
             else:
                 logger.error('下单失败{}'.format(res))
-
-        # loc是整数位置，iloc是值
-        data_loc = [ts, clOrdId, side, posSide, current_value, num, all]
-        order_df.loc[loc] = data_loc
-        order_df.to_csv(file_path, index=False)
-        # todo 发邮箱等提醒
+                # todo 发邮箱等提醒
         return res
 
     def get_orders_pending(self, instId):
@@ -110,7 +108,7 @@ class TradeFactory:
         logger.info('close_positions{}-{}'.format(instId, posSide))
         res = self.TradeAPI.close_positions(instId=instId, mgnMode="isolated", posSide=posSide)
         if res.get('code') != '0':
-            logger.error('批量撤单失败{}'.format(res))
+            logger.error('市价仓位全平失败{}'.format(res))
             raise Exception(res.get('msg'))
 
 
