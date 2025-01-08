@@ -86,7 +86,7 @@ STRATEGY_CONFIG = {
     },
 }
 COLUMNS = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']
-ORDER_COLUMNS = ['ts', 'clOrdId', 'operate', 'posSide', 'value', 'num', 'all']
+ORDER_COLUMNS = ['ts', 'clOrdId', 'operate', 'posSide', 'order_value', 'current_value', 'num', 'all']
 GRID_INF_OPERATION_COLUMNS = ['instId', 'buyp', 'sellp', 'direction', 'initial_num', 'grid_num']
 ORDER_PATH = '{}/history_data/{}'
 STRATEGY_CLASS_CONFIG = {

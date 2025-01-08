@@ -194,6 +194,7 @@ class GridInf:
                                         data['posSide'] = 'short'
                                         data['ordType'] = 'limit'
                                         data['px'] = sellp
+                                        data['order_value'] = sellp
                                         df.loc[df['instId'] == instId, 'direction'] = 'sell'
                                         df.to_csv(file_path, index=False)
                                         logger.info('预埋空单{}份，当前价格{}'.format(grid_num, current_value))
@@ -205,6 +206,7 @@ class GridInf:
                                         data['posSide'] = 'short'
                                         data['ordType'] = 'limit'
                                         data['px'] = buyp
+                                        data['order_value'] = buyp
                                         df.loc[df['instId'] == instId, 'direction'] = 'closesell'
                                         df.to_csv(file_path, index=False)
                                         logger.info('预埋平空单{}份，当前价格{}'.format(grid_num, current_value))
@@ -266,6 +268,7 @@ class GridInf:
                                         data['posSide'] = 'long'
                                         data['ordType'] = 'limit'
                                         data['px'] = buyp
+                                        data['order_value'] = buyp
                                         df.loc[df['instId'] == instId, 'direction'] = 'buy'
                                         df.to_csv(file_path, index=False)
                                         tf(flag).order(data=data, strategy_class_name=strategy_class_name,
@@ -277,6 +280,7 @@ class GridInf:
                                         data['posSide'] = 'long'
                                         data['ordType'] = 'limit'
                                         data['px'] = sellp
+                                        data['order_value'] = sellp
                                         df.loc[df['instId'] == instId, 'direction'] = 'closebuy'
                                         df.to_csv(file_path, index=False)
                                         logger.info('预埋平多单{}份，当前价格{}'.format(grid_num, current_value))

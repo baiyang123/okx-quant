@@ -69,8 +69,13 @@ class TradeFactory:
             if res.get('code') == '0':
                 # current_value 按照最后下单价格来,目前值写了单独下单，暂用data[0]后续优化
                 clOrdId = res['data'][0]['clOrdId']
+                # todo 这里市单价就按照 current_value 算后续改成查询刚下的订单真实成交金额
+                if ordType == 'market':
+                    order_value = current_value
+                elif ordType == 'limit':
+                    order_value = data.get('order_value')
                 # loc是整数位置，iloc是值 这里如果没有clOrdId 说明下单失败了
-                data_loc = [ts, clOrdId, side, posSide, current_value, num, all]
+                data_loc = [ts, clOrdId, side, posSide, order_value, current_value, num, all]
                 order_df.loc[loc] = data_loc
                 order_df.to_csv(file_path, index=False)
             else:
