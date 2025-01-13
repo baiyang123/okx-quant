@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from backtesting.grid_testing import Grid_Testing
+from config import ORDER_COLUMNS
 from factory.MarketFactory import MarketFactory
 from backtesting.moving_testing import moving
 
@@ -37,13 +39,17 @@ class back_testing:
 
         res, msg, income, percentage = MarketFactory().get_history_data(instId, before, after, bar)
         # 准备持仓文件
-        file_name = 'testing_{}_{}.csv'.format(instId, bar)
+        file_name = 'testing_{}_{}_{}.csv'.format(class_name.__class__.__name__, instId, bar)
         file_path = '{}/history_data/{}'.format(root_dir, file_name)
+        if class_name.__class__.__name__ == 'moving':
+            columns = ['ts', 'operate', 'value', 'num', 'remaining', 'all']
+        elif class_name.__class__.__name__ == 'Grid_Testing':
+            columns = ORDER_COLUMNS
         if not os.path.exists(file_path):
             with open(file_path, "w") as file:
                 pass
         else:
-            df = pd.DataFrame(columns=['ts', 'operate', 'value', 'num', 'remaining', 'all'])
+            df = pd.DataFrame(columns=columns)
             df.to_csv(file_path, index=False)
 
         if res:
@@ -52,15 +58,18 @@ class back_testing:
             # 由于均线理论从前两天的均线看所以向后平移两天
             i = 2
             while i < df_sorted_by_column.shape[0]:
+                if class_name.__class__.__name__ == 'Grid_Testing':
+                    i = i+20 # 要算boll等数据20天后才有
                 df_ts = df_sorted_by_column.iloc[i]
                 i = i + 1
                 # todo getattr 写法
                 class_name.current_value = df_ts.loc['c']
                 # for循环将每天的实时价格传给类的策略,其余由策略决定是否买卖，买卖后回来计算
                 class_name.strategy(df_ts.loc['ts'])
+                print(i)
             # 计算收益
-            file_name = 'testing_{}_{}.csv'.format(instId, bar)
-            file_path = '{}/history_data/{}'.format(root_dir, file_name)
+            # file_name = 'testing_{}_{}.csv'.format(instId, bar)
+            # file_path = '{}/history_data/{}'.format(root_dir, file_name)
 
             df_testing = pd.read_csv(file_path)
 
@@ -70,7 +79,10 @@ class back_testing:
             all_start = df_testing.loc[0]['all']
 
             plt.plot(pd.to_datetime(df_testing['ts']), round(df_testing['all']/all_start, 2), label='all')
-            plt.plot(pd.to_datetime(df_testing['ts']), round(df_testing['value']/value_start, 2), label='value')
+            if class_name.__class__.__name__ == 'moving':
+                plt.plot(pd.to_datetime(df_testing['ts']), round(df_testing['value']/value_start, 2), label='value')
+            elif class_name.__class__.__name__ == 'Grid_Testing':
+                plt.plot(pd.to_datetime(df_testing['ts']), round(df_testing['value'] / value_start, 2), label='current_value')
 
             plt.xlabel('时间')
             plt.ylabel('总收益')
@@ -88,4 +100,5 @@ class back_testing:
 if __name__ == '__main__':
     instId, before, after, bar, money, lever, class_name = 'ETC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D', 50000, 3, moving()
     back_testing().backtesting(instId, before, after, bar, money, lever, class_name)
-
+    # instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2023-03-05', '2024-11-01', '1D', 100000, 3,Grid_Testing()
+    # back_testing().backtesting(instId, before, after, bar, money, lever, class_name)

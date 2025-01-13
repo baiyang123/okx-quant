@@ -32,7 +32,7 @@ def init_app(profile_path):
         # # 当任务被唤起时，如果在 misfire_grace_time 时间差内，依然运行。
         # back_scheduler.add_job(... , misfire_grace_time=30)
         # 每个任务都有一个 misfire_grace_time，单位：秒，默认是 0 秒。意思是那些错过的任务在有条件执行时（有线程空闲出来/服务已恢复），如果还没有超过 misfire_grace_time，就会被再次执行。如果 misfire_grace_time=None，就是不论任务错过了多长时间，都会再次执行。
-        scheduler.add_job(func=grid_inf_task, trigger='cron', day='*', hour='*', minute='*',
+        scheduler.add_job(func=grid_inf_task, trigger='cron', day='*', hour='*', minute='*/2',
                           id='grid_inf_task_01', args=[app], misfire_grace_time=30)
 
         # 样例

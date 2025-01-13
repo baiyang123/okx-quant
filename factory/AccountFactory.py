@@ -113,5 +113,5 @@ if __name__ == '__main__':
     # print(MarketFactory().get_grid_box())
     # print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D'))
     # print(AccountFactory('1').get_strategy_position(strategy_class_name='GridInf', instId='BTC-USDT-SWAP'))
-    # print(AccountFactory().get_lotSz('BTC-USDT-SWAP_MA'))
-    print(AccountFactory('1').set_levelage(strategy_class_name='GridInf', instId='BTC-USDT-SWAP'))
+    print(AccountFactory().get_lotSz('BTC-USDT-SWAP_MA'))
+    # print(AccountFactory('1').set_levelage(strategy_class_name='GridInf', instId='BTC-USDT-SWAP'))

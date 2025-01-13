@@ -1,2 +1,2 @@
-instId,buyp,sellp,direction
-BTC-USDT-SWAP,90475.5,101969.9,short
+instId,buyp,sellp,direction,initial_num,grid_num
+BTC-USDT-SWAP,90176.7,95190.5,closebuy,83.4,20.8

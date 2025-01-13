@@ -88,6 +88,9 @@ STRATEGY_CONFIG = {
 COLUMNS = ['ts', 'o', 'h', 'l', 'c', 'vol', 'volCcy', 'volCcyQuote', 'confirm']
 ORDER_COLUMNS = ['ts', 'clOrdId', 'operate', 'posSide', 'order_value', 'current_value', 'num', 'all']
 GRID_INF_OPERATION_COLUMNS = ['instId', 'buyp', 'sellp', 'direction', 'initial_num', 'grid_num']
+GRID_INF_OPERATION_COLUMNS_TESTING = ['instId', 'buyp', 'sellp', 'direction', 'initial_num', 'grid_num', 'position', 'lbpos', 'lspos', 'sspos', 'sbpos', 'all', 'all_start', 'remain']
+GRID_INF_OPERATION_HISTORY_TESTING = ['ts', 'instId', 'buyp', 'sellp', 'direction', 'initial_num', 'grid_num', 'position', 'lbpos', 'lspos', 'sspos', 'sbpos', 'all', 'all_start', 'remain','current_value']
+ORDER_COLUMNS_TESTING = ['ts', 'clOrdId', 'operate', 'posSide', 'order_value', 'current_value', 'num', 'all']
 ORDER_PATH = '{}/history_data/{}'
 STRATEGY_CLASS_CONFIG = {
     'GridInf': {
@@ -110,5 +113,26 @@ STRATEGY_CLASS_CONFIG = {
             'pos_direction': 2,  # 0做多1做空2双向
             'frequency': 1,  # 每天的触网频率
         }
-    }
+    },
+    'Grid_Testing': {
+            'BTC-USDT-SWAP': {
+                'instId': 'BTC-USDT-SWAP',
+                'bar_unit': 'Dutc',  # 时间周期单位，香港
+                'bar': 1,
+                'boll_bar': 20,
+                'atr_bar': 14,  # 算每天震荡均值
+                'ccy': 'USDT',
+                'positionRatio': 0.8,  # 策略仓位
+                'lever': 1,
+                'instType': 'SWAP',
+                'stopLossRatio': 0.15,  # 止损比例
+                'interval': 10,  # 策略运行频率
+                'ordType': 'market',
+                'flag': '1',  # 1模拟0实盘
+                'initial_position': 0.2,  # 底仓仓位
+                'grid_position': 0.05,  # 网格仓位
+                'pos_direction': 2,  # 0做多1做空2双向
+                'frequency': 1,  # 每天的触网频率
+            }
+        }
 }

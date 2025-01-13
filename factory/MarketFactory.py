@@ -123,7 +123,7 @@ class MarketFactory:
                     data_res = False
                     break
             if data_res:
-                df = pd.DataFrame(history_data_list, columns=self.columns)
+                df = pd.DataFrame(history_data_list, columns=COLUMNS)
                 df['h'] = df['h'].astype(float)
                 df['l'] = df['l'].astype(float)
                 df['c'] = df['c'].astype(float)
@@ -266,7 +266,7 @@ class MarketFactory:
             ub = ma + 2 * standard_deviation
             lb = ma - 2 * standard_deviation
             # 20日平均波动，最新一天不算
-            df_atr = df.loc[1: atr_bar]
+            df_atr = df.iloc[1: atr_bar]
             atr = (df_atr['h']-df_atr['l']).mean()
             lotsz = af(flag).get_lotSz(strategy_class_name=strategy_class_name, instId=instId)
             result = {
@@ -298,6 +298,6 @@ class MarketFactory:
 
 if __name__ == '__main__':
     # print(MarketFactory().get_grid_box())
-    # print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D'))
+    print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D'))
     # print(MarketFactory().get_ticker_info('BTC-USDT-SWAP_MA'))
-    print(MarketFactory('0').get_grid_info('GridInf','BTC-USDT-SWAP'))
+    # print(MarketFactory('0').get_grid_info('GridInf','BTC-USDT-SWAP'))
