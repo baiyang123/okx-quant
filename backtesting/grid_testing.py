@@ -18,7 +18,7 @@ from strategy.grid_inf import config_in_operation_path
 root_dir = pathlib.Path(__file__).resolve().parent.parent
 
 
-# instId,buyp,sellp,direction,initial_num,grid_num
+# instId,buyp,sellp,direction,initial_num,grid_num 总收益为股票差价乘以数量成杠杆
 # 网格先写的模拟盘，所以回测写的比较简单
 # todo 将回测和模拟盘的公用方法通过flag的方式合并体系，例如order等方法
 # 如果底仓不够网格仓位一直卖的话就会卖空，
@@ -88,7 +88,6 @@ class Grid_Testing:
                 before_datetime_str = before_datetime.strftime('%Y-%m-%d')
                 df_boll = self.bar_df[(self.bar_df['ts'] < ts) & (self.bar_df['ts'] >= before_datetime_str)]
                 grid_info = self.get_grid_info(df_boll)
-                print(grid_info,1)
                 # # 默认14个周期平均移动均值
                 atr = grid_info.get('atr')
                 file_path = '{}/operation_data/gridInf_testing.csv'.format(root_dir)
@@ -182,7 +181,6 @@ class Grid_Testing:
                     # orders = tf(flag).get_orders_pending(instId)
                     # 大于止损线市价全平 /api/v5/trade/close-position，先撤单
                     diff = float((self.order_value - current_value) / self.order_value)
-                    print(self.order_value, current_value, (self.order_value - current_value) / self.order_value, stopLossRatio, stopLossRatio < -diff)
                     if (self.direction == 'long' and stopLossRatio < -diff) or (self.direction == 'short' and stopLossRatio < -diff) or self.position < self.grid_num:
                         logger.info('亏损{}大于止损线市价全平，当前价格{}'.format(diff, current_value))
                         if self.lbpos != 0 or self.lspos != 0 or self.sspos != 0 or self.sbpos != 0:
@@ -426,7 +424,6 @@ class Grid_Testing:
                                 if current_value > sellp:
                                     logger.info('止盈成交多单{}份，当前价格{}，继续埋网'.format(grid_num, current_value))
                                     # ordId = orders[0].get('ordId')
-                                    print(self.position,grid_num, self.remain)
                                     df.loc[df['instId'] == instId, 'lbpos'] = 0
                                     df.loc[df['instId'] == instId, 'lspos'] = 0
                                     df.loc[df['instId'] == instId, 'sspos'] = 0
