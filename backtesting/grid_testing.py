@@ -203,9 +203,10 @@ class Grid_Testing:
                             df.loc[df['instId'] == instId, 'sspos'] = 0
                             df.loc[df['instId'] == instId, 'sbpos'] = 0
                         # 平仓
-                        df.loc[df['instId'] == instId, 'all_start'] = self.remain + self.position * current_value*ctVal / lever
-                        df.loc[df['instId'] == instId, 'all'] = self.remain + self.position * current_value*ctVal / lever
-                        df.loc[df['instId'] == instId, 'remain'] = round(self.remain + self.position * current_value*ctVal / lever , lotsz)
+                        self.all = round(self.remain + self.position * current_value*ctVal / lever, lotsz)
+                        df.loc[df['instId'] == instId, 'all_start'] = self.all
+                        df.loc[df['instId'] == instId, 'all'] = self.all
+                        df.loc[df['instId'] == instId, 'remain'] = self.all
 
                         df.loc[df['instId'] == instId, 'direction'] = 'no'
                         df.loc[df['instId'] == instId, 'position'] = 0
@@ -236,9 +237,10 @@ class Grid_Testing:
                             # tf(flag).order(data=data, strategy_class_name=strategy_class_name, instId=instId)
                             df.loc[df['instId'] == instId, 'direction'] = 'no'
                             df.loc[df['instId'] == instId, 'position'] = 0
-                            df.loc[df['instId'] == instId, 'remain'] = round(self.remain + num * current_value*ctVal / lever,lotsz)
-                            df.loc[df['instId'] == instId, 'all'] = self.remain + num * current_value*ctVal / lever
-                            df.loc[df['instId'] == instId, 'all_start'] = self.remain + num * current_value*ctVal / lever
+                            self.all = round(self.remain + num * current_value * ctVal / lever, lotsz)
+                            df.loc[df['instId'] == instId, 'remain'] = self.all
+                            df.loc[df['instId'] == instId, 'all'] = self.all
+                            df.loc[df['instId'] == instId, 'all_start'] = self.all
 
                             # df.loc[df['instId'] == instId, 'all_start'] = self.all_start + abs(
                             #     current_value - self.order_value) * self.position * ctVal * lever
@@ -309,7 +311,8 @@ class Grid_Testing:
                                     df.loc[df['instId'] == instId, 'sbpos'] = 0
                                     df.loc[df['instId'] == instId, 'position'] = self.position - grid_num
                                     df.loc[df['instId'] == instId, 'remain'] = round(self.remain+sellp*self.grid_num*ctVal / lever, lotsz)
-                                    df.loc[df['instId'] == instId, 'all'] = self.remain+sellp*self.grid_num*ctVal / lever + (self.position - grid_num)*current_value*ctVal / lever
+                                    self.all = round(self.remain+sellp*self.grid_num*ctVal / lever + (self.position - grid_num)*current_value*ctVal / lever, lotsz)
+                                    df.loc[df['instId'] == instId, 'all'] = self.all
 
                                     # df.loc[df['instId'] == instId, 'remain'] = round(self.remain+sellp*self.grid_num*ctVal / lever, lotsz) + abs(sellp - self.order_value) * grid_num * ctVal * lever
                                     # df.loc[df['instId'] == instId, 'all'] = self.all_start + abs(sellp - self.order_value) * grid_num * ctVal * lever
@@ -330,8 +333,10 @@ class Grid_Testing:
                                     df.loc[df['instId'] == instId, 'sbpos'] = 0
                                     df.loc[df['instId'] == instId, 'position'] = self.position + grid_num
                                     df.loc[df['instId'] == instId, 'remain'] = round(self.remain - buyp*self.grid_num*ctVal / lever, lotsz)
-                                    df.loc[df['instId'] == instId, 'all'] = self.remain - buyp*self.grid_num*ctVal / lever + (
-                                                self.position + grid_num) * current_value*ctVal / lever
+                                    self.all = round(self.remain - buyp*self.grid_num*ctVal / lever + (
+                                                self.position + grid_num) * current_value*ctVal / lever, lotsz)
+                                    df.loc[df['instId'] == instId, 'all'] = self.all
+
                                     buyp = round(buyp + atr, lotsz)
                                     sellp = round(sellp + atr, lotsz)
                                     df.loc[df['instId'] == instId, 'buyp'] = buyp
@@ -355,9 +360,10 @@ class Grid_Testing:
                             #                instId=instId)
                             df.loc[df['instId'] == instId, 'direction'] = 'no'
                             df.loc[df['instId'] == instId, 'position'] = 0
-                            df.loc[df['instId'] == instId, 'remain'] = round(self.remain + num * current_value*ctVal / lever, lotsz)
-                            df.loc[df['instId'] == instId, 'all'] = self.remain + num * current_value*ctVal / lever
-                            df.loc[df['instId'] == instId, 'all_start'] = self.remain + num * current_value*ctVal / lever
+                            self.all = round(self.remain + num * current_value*ctVal / lever, lotsz)
+                            df.loc[df['instId'] == instId, 'remain'] = self.all
+                            df.loc[df['instId'] == instId, 'all'] = self.all
+                            df.loc[df['instId'] == instId, 'all_start'] = self.all
 
 
                             # df.loc[df['instId'] == instId, 'all_start'] = self.all_start + abs(
@@ -430,8 +436,9 @@ class Grid_Testing:
                                     df.loc[df['instId'] == instId, 'sbpos'] = 0
                                     df.loc[df['instId'] == instId, 'position'] = self.position-grid_num
                                     df.loc[df['instId'] == instId, 'remain'] = round(self.remain + sellp*self.grid_num*ctVal / lever, lotsz)
-                                    df.loc[df['instId'] == instId, 'all'] = self.remain + sellp*self.grid_num*ctVal / lever + (
-                                                self.position - grid_num) * current_value*ctVal / lever
+                                    self.all = round(self.remain + sellp*self.grid_num*ctVal / lever + (
+                                                self.position - grid_num) * current_value*ctVal / lever, lotsz)
+                                    df.loc[df['instId'] == instId, 'all'] = self.all
 
                                     # df.loc[df['instId'] == instId, 'remain'] = round(
                                     #     self.remain + sellp * self.grid_num * ctVal / lever, lotsz) + abs(
@@ -456,8 +463,9 @@ class Grid_Testing:
                                     df.loc[df['instId'] == instId, 'sbpos'] = 0
                                     df.loc[df['instId'] == instId, 'position'] = self.position + grid_num
                                     df.loc[df['instId'] == instId, 'remain'] = round(self.remain - buyp*self.grid_num*ctVal / lever, lotsz)
-                                    df.loc[df['instId'] == instId, 'all'] = self.remain - buyp*self.grid_num*ctVal / lever + (
-                                            self.position + grid_num) * current_value*ctVal / lever
+                                    self.all = round(self.remain - buyp*self.grid_num*ctVal / lever + (
+                                            self.position + grid_num) * current_value*ctVal / lever, lotsz)
+                                    df.loc[df['instId'] == instId, 'all'] = self.all
                                     buyp = round(buyp - atr, lotsz)
                                     sellp = round(sellp - atr, lotsz)
                                     df.loc[df['instId'] == instId, 'buyp'] = buyp
@@ -513,7 +521,9 @@ class Grid_Testing:
             logger.error(traceback.format_exc())
         finally:
             file_path_history = '{}/history_data/testing/gridInf_testing.csv'.format(root_dir)
-            all = round(float(df.iloc[0].get('position'))*float(current_value)*ctVal/lever + float(df.iloc[0].get('remain')), lotsz)
+            # all的算法不对，缺少杠杆算法
+            # all = round(float(df.iloc[0].get('position'))*float(current_value)*ctVal/lever + float(df.iloc[0].get('remain')), lotsz)
+            all = self.all
             df = pd.read_csv(file_path)
             df.loc[df['instId'] == instId, 'all'] = all
             df.to_csv(file_path, index=False)
@@ -640,4 +650,18 @@ if __name__ == '__main__':
     # 设置Matplotlib的中文字体
     plt.rcParams['font.sans-serif'] = ['SimHei']
     plt.show()
+    # 相关系数
+    correlation = df_all['all'].corr(df_all['current_value'])
+    logger.info('相关系数为{}'.format(correlation))
+    # 计算最大回撤
+    # 计算累计最大值
+    cumulative_max_all = df_all['all'].cummax()
+    cumulative_max_target = df_all['current_value'].cummax()
+    # 计算每个点的回撤
+    drawdowns_all = (df_all['all'] - cumulative_max_all) / cumulative_max_all
+    drawdowns_target = (df_all['current_value'] - cumulative_max_target) / cumulative_max_target
+    # 找出最大回撤
+    max_drawdown_all = drawdowns_all.min()
+    max_drawdown_target = drawdowns_target.min()
+    logger.info('最大回撤分别为目标{}，策略{}'.format(max_drawdown_target, max_drawdown_all))
 
