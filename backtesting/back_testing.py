@@ -98,7 +98,7 @@ class back_testing:
 
 
 if __name__ == '__main__':
-    instId, before, after, bar, money, lever, class_name = 'ETC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D', 50000, 3, moving()
+    instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D', 50000, 3, moving()
     back_testing().backtesting(instId, before, after, bar, money, lever, class_name)
     # instId, before, after, bar, money, lever, class_name = 'BTC-USDT-SWAP', '2023-03-05', '2024-11-01', '1D', 100000, 3,Grid_Testing()
     # back_testing().backtesting(instId, before, after, bar, money, lever, class_name)

@@ -3,6 +3,7 @@
 快慢均线上下穿透，并设置观察期，初版不加杠杆，只做多
 '''
 import pathlib
+import traceback
 from datetime import datetime, timedelta
 import pandas as pd
 from loguru import logger
@@ -25,8 +26,8 @@ class moving:
         self.PositionRatio = 0.8  # 仓位比例
         self.StopLossRatio = 0.05  # 止损比率
         self.Interval = 10  # 轮询周期(秒)
-        self.instId = ''
-        self.bar = ''
+        self.instId = 'BTC-USDT-SWAP'
+        self.bar = '1D'
         self.bar_df = ''
         self.money = 0  # 总金额
         self.current_value = 0  # 当前币种金额
@@ -55,7 +56,9 @@ class moving:
             slowPeriod = self.bar_df.loc[self.bar_df['ts'] == now, 'ma{}'.format(self.SlowPeriod)].tolist()[0]
 
             file_name = 'testing_{}_{}.csv'.format(self.instId, self.bar)
+            file_name = 'testing_{}_{}_{}.csv'.format(self.__class__.__name__, self.instId, self.bar)
             file_path = '{}/history_data/{}'.format(root_dir, file_name)
+
 
             testing_df = pd.read_csv(file_path)
 
@@ -125,7 +128,7 @@ class moving:
                     testing_df.loc[len(testing_df.index)] = data
                     testing_df.to_csv(file_path, index=False)
         except Exception as e:
-            logger.error(e)
+            logger.error(traceback.format_exc())
 
 
 
