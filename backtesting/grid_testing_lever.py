@@ -672,6 +672,18 @@ class Grid_Testing:
     def get_strategy_position(self, strategy_class_name, instId):
         pass
 
+    # 计算RSI指标
+    def calculate_rsi(self, data, window=14):
+        delta = data['Close'].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=window, min_periods=1).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=window, min_periods=1).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
+        # 开多开空优化方案
+        data.loc[(data['RSI'] < 30) & (data['Close'] < data['Lower_Band']), 'Signal'] = 1
+        data.loc[(data['RSI'] > 70) & (data['Close'] > data['Upper_Band']), 'Signal'] = -1
+        return rsi
+
 
 if __name__ == '__main__':
     file_path = '{}/history_data/testing/gridInf_testing_lever.csv'.format(root_dir)
