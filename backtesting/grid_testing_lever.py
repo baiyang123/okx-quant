@@ -181,7 +181,8 @@ class Grid_Testing:
                     # orders = tf(flag).get_orders_pending(instId)
                     # 大于止损线市价全平 /api/v5/trade/close-position，先撤单
                     diff = float((self.order_value - current_value) / self.order_value)
-                    if (self.direction == 'long' and stopLossRatio < -diff) or (self.direction == 'short' and stopLossRatio < -diff) or self.position < self.grid_num:
+                    # 加校验 能同方向仓位太多大于导致保证金不够了就要重新开 todo （灵感：可以用总价值约束不在同方向加太多仓位） 说明趋势错了
+                    if (self.direction == 'long' and stopLossRatio < -diff) or (self.direction == 'short' and stopLossRatio < -diff) or self.position < self.grid_num or self.remain < 0 or self.remain > 2 * self.all_start:
                         logger.info('亏损{}大于止损线市价全平，当前价格{},下单价格'.format(diff, current_value, self.order_value))
                         if self.lbpos != 0 or self.lspos != 0 or self.sspos != 0 or self.sbpos != 0:
                             # cacal_order_list = []
@@ -214,6 +215,7 @@ class Grid_Testing:
                         df.loc[df['instId'] == instId, 'direction'] = 'no'
                         self.direction = 'no'
                         df.loc[df['instId'] == instId, 'position'] = 0
+                        self.position = 0
 
                         # df.loc[df['instId'] == instId, 'all_start'] = self.all_start - abs(
                         #     current_value - self.order_value) * self.position * ctVal * lever
@@ -242,12 +244,13 @@ class Grid_Testing:
                             df.loc[df['instId'] == instId, 'direction'] = 'no'
                             self.direction = 'no'
                             df.loc[df['instId'] == instId, 'position'] = 0
+
                             # self.all = round(self.remain + num * current_value * ctVal / lever, lotsz)
                             self.remain = round(self.remain - self.position * current_value * ctVal * lever, lotsz)
                             df.loc[df['instId'] == instId, 'remain'] = self.remain
                             # df.loc[df['instId'] == instId, 'all'] = self.all
                             df.loc[df['instId'] == instId, 'all_start'] = self.remain
-
+                            self.position = 0
                             # df.loc[df['instId'] == instId, 'all_start'] = self.all_start + abs(
                             #     current_value - self.order_value) * self.position * ctVal * lever
                             # df.loc[df['instId'] == instId, 'all'] = self.all_start + abs(
@@ -304,6 +307,12 @@ class Grid_Testing:
                                 df.loc[df['instId'] == instId, 'sbpos'] = buyp
                                 df.to_csv(file_path, index=False)
                                 logger.info('预埋平空单{}份{}，当前价格{}'.format(grid_num,buyp, current_value))
+                                # 说明在区间没来得及下仓就把上下仓全吃了
+                                if self.all != self.all_start:
+                                    logger.info('上下双吃{}'.format(ts))
+                                    self.remain = self.remain + 2 * atr * grid_num * ctVal * lever
+                                    df.loc[df['instId'] == instId, 'remain'] = self.remain
+                                    df.to_csv(file_path, index=False)
                                 # tf(flag).order(data=data, strategy_class_name=strategy_class_name,
                                 #                instId=instId)
                                 self.order(data)
@@ -315,7 +324,8 @@ class Grid_Testing:
                                     df.loc[df['instId'] == instId, 'lspos'] = 0
                                     df.loc[df['instId'] == instId, 'sspos'] = 0
                                     df.loc[df['instId'] == instId, 'sbpos'] = 0
-                                    df.loc[df['instId'] == instId, 'position'] = self.position - grid_num
+                                    self.position = self.position - grid_num
+                                    df.loc[df['instId'] == instId, 'position'] = self.position
                                     # df.loc[df['instId'] == instId, 'remain'] = round(self.remain+sellp*self.grid_num*ctVal / lever, lotsz)
                                     self.remain = round(self.remain - buyp * grid_num * ctVal * lever, lotsz)
                                     # df.loc[df['instId'] == instId, 'all_start'] = self.remain
@@ -340,7 +350,8 @@ class Grid_Testing:
                                     df.loc[df['instId'] == instId, 'lspos'] = 0
                                     df.loc[df['instId'] == instId, 'sspos'] = 0
                                     df.loc[df['instId'] == instId, 'sbpos'] = 0
-                                    df.loc[df['instId'] == instId, 'position'] = self.position + grid_num
+                                    self.position = self.position + grid_num
+                                    df.loc[df['instId'] == instId, 'position'] = self.position
                                     # 持仓成本变化
                                     self.order_value = (self.order_value * self.position + grid_num * current_value)/(self.position + grid_num)
                                     df.loc[df['instId'] == instId, 'order_value'] = self.order_value
@@ -373,12 +384,13 @@ class Grid_Testing:
                             #                instId=instId)
                             df.loc[df['instId'] == instId, 'direction'] = 'no'
                             self.direction = 'no'
+
                             df.loc[df['instId'] == instId, 'position'] = 0
                             self.remain = round(self.remain + self.position * current_value * ctVal * lever, lotsz)
                             df.loc[df['instId'] == instId, 'remain'] = self.remain
                             # df.loc[df['instId'] == instId, 'all'] = self.all
                             df.loc[df['instId'] == instId, 'all_start'] = self.remain
-
+                            self.position = 0
 
                             # df.loc[df['instId'] == instId, 'all_start'] = self.all_start + abs(
                             #     current_value - self.order_value) * self.position * ctVal * lever
@@ -435,6 +447,11 @@ class Grid_Testing:
                                 df.loc[df['instId'] == instId, 'lspos'] = sellp
                                 df.to_csv(file_path, index=False)
                                 logger.info('预埋平多单{}份，当前价格{}'.format(grid_num, current_value))
+                                if self.all != self.all_start:
+                                    logger.info('上下双吃{}'.format(ts))
+                                    self.remain = self.remain + 2 * atr * grid_num * ctVal * lever
+                                    df.loc[df['instId'] == instId, 'remain'] = self.remain
+                                    df.to_csv(file_path, index=False)
                                 # tf(flag).order(data=data, strategy_class_name=strategy_class_name,
                                 #                instId=instId)
                                 self.order(data)
@@ -448,7 +465,8 @@ class Grid_Testing:
                                     df.loc[df['instId'] == instId, 'lspos'] = 0
                                     df.loc[df['instId'] == instId, 'sspos'] = 0
                                     df.loc[df['instId'] == instId, 'sbpos'] = 0
-                                    df.loc[df['instId'] == instId, 'position'] = self.position-grid_num
+                                    self.position = self.position-grid_num
+                                    df.loc[df['instId'] == instId, 'position'] = self.position
                                     self.remain = round(self.remain + sellp * grid_num * ctVal * lever, lotsz)
                                     df.loc[df['instId'] == instId, 'remain'] = self.remain
                                     # self.all = round(self.remain + sellp*self.grid_num*ctVal / lever + (
@@ -481,7 +499,8 @@ class Grid_Testing:
                                     df.loc[df['instId'] == instId, 'lspos'] = 0
                                     df.loc[df['instId'] == instId, 'sspos'] = 0
                                     df.loc[df['instId'] == instId, 'sbpos'] = 0
-                                    df.loc[df['instId'] == instId, 'position'] = self.position + grid_num
+                                    self.position = self.position + grid_num
+                                    df.loc[df['instId'] == instId, 'position'] = self.position
                                     self.remain = round(self.remain - buyp * grid_num * ctVal * lever, lotsz)
                                     df.loc[df['instId'] == instId, 'remain'] = self.remain
                                     # self.all = round(self.remain - buyp*self.grid_num*ctVal / lever + (
@@ -515,9 +534,11 @@ class Grid_Testing:
                             self.direction = 'short'
                             df.loc[df['instId'] == instId, 'initial_num'] = initial_num
                             df.loc[df['instId'] == instId, 'grid_num'] = grid_num
-                            df.loc[df['instId'] == instId, 'remain'] = round(self.all + initial_num * current_value * ctVal * lever, lotsz)
+                            self.remain = round(self.all + initial_num * current_value * ctVal * lever, lotsz)
+                            df.loc[df['instId'] == instId, 'remain'] = self.remain
                             # df.loc[df['instId'] == instId, 'remain'] = self.all_start
-                            df.loc[df['instId'] == instId, 'position'] = initial_num
+                            self.position = initial_num
+                            df.loc[df['instId'] == instId, 'position'] = self.position
                             # df.loc[df['instId'] == instId, 'all'] = self.all
                             df.loc[df['instId'] == instId, 'order_value'] = current_value
                             df.loc[df['instId'] == instId, 'all_start'] = self.all_start
@@ -533,12 +554,14 @@ class Grid_Testing:
                             data['side'] = 'buy'
                             data['posSide'] = 'long'
                             df.loc[df['instId'] == instId, 'direction'] = 'long'
-                            self.direction = 'long'
                             df.loc[df['instId'] == instId, 'initial_num'] = initial_num
                             df.loc[df['instId'] == instId, 'grid_num'] = grid_num
-                            df.loc[df['instId'] == instId, 'remain'] = round(self.all - initial_num * current_value * ctVal * lever, lotsz)
+                            self.direction = 'long'
+                            self.remain = round(self.all - initial_num * current_value * ctVal * lever, lotsz)
+                            self.position = initial_num
+                            df.loc[df['instId'] == instId, 'remain'] = self.remain
                             # df.loc[df['instId'] == instId, 'remain'] = self.all_start # 用remain在变仓位的时候作为变动初始自有资金 all_start 做为初始参考
-                            df.loc[df['instId'] == instId, 'position'] = initial_num
+                            df.loc[df['instId'] == instId, 'position'] = self.position
                             # df.loc[df['instId'] == instId, 'all'] = self.all
                             df.loc[df['instId'] == instId, 'order_value'] = current_value
                             df.loc[df['instId'] == instId, 'all_start'] = self.all_start
@@ -661,7 +684,7 @@ if __name__ == '__main__':
         df.to_csv(file_path, index=False)
 
     # date_format = "%Y-%m-%d"
-    start_time = '2024-04-30'
+    start_time = '2023-04-30'
     end_time = '2024-10-30'
     while start_time <= end_time:
         Grid_Testing().strategy(start_time)
