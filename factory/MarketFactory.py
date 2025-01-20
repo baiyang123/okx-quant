@@ -298,6 +298,6 @@ class MarketFactory:
 
 if __name__ == '__main__':
     # print(MarketFactory().get_grid_box())
-    print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1D'))
+    print(MarketFactory().get_history_data('BTC-USDT-SWAP', '2023-03-05', '2024-11-05', '1Dutc'))
     # print(MarketFactory().get_ticker_info('BTC-USDT-SWAP_MA'))
     # print(MarketFactory('0').get_grid_info('GridInf','BTC-USDT-SWAP'))
