@@ -118,7 +118,7 @@ class MarketFactory:
                 if res.get('code') == '0':
                     # history_data_list = history_data_list + res.get('data')
                     history_data_list.extend(res.get('data'))
-                    before_datetime = before_datetime - timedelta(days=-209)
+                    before_datetime = before_datetime - timedelta(days=-300)
                 else:
                     data_res = False
                     break
@@ -294,6 +294,94 @@ class MarketFactory:
             # 本方法必须指定币种所以返回一条
             result = res.get('data')[0]
         return result
+
+
+    '''
+    df['EMA'] = mf.EMA(df['close'], timeperiod=self.trend_window)
+    df['ATR'] = mf.ATR(df['high'], df['low'], df['close'], self.volatility_window)
+    df['RSI'] = mf.RSI(df['close'], self.rsi_window)
+    columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'volCcy',
+                                       'volCcyQuote', 'confirm'])
+    '''
+    def EMA(self, df, timeperiod):
+        df['EMA'] = df['close'].ewm(span=timeperiod, adjust=False).mean()
+        return df
+
+    def ATR(self, df, volatility_window):
+        # 计算真实范围（True Range）
+        df['HL'] = df['high'] - df['low']  # 当日最高价与最低价的差
+        df['HC'] = abs(df['close'].shift(1) - df['high'])  # 当日最高价与前一日收盘价的差
+        df['LC'] = abs(df['close'].shift(1) - df['low'])  # 当日最低价与前一日收盘价的差
+        df['True Range'] = df[['HL', 'HC', 'LC']].max(axis=1)  # 取三者中的最大值
+
+        # 计算 ATR：真实范围的移动平均值
+        df['ATR'] = df['True Range'].rolling(window=volatility_window).mean()
+
+        # 删除中间计算列
+        return df.drop(['HL', 'HC', 'LC', 'True Range'], axis=1)
+
+    def RSI(self, df, rsi_window):
+        # 计算价格变化
+        df['Change'] = df['close'].diff()
+
+        # 计算上涨和下跌的平均值
+        df['Gain'] = df['Change'].mask(df['Change'] < 0, 0)
+        df['Loss'] = -df['Change'].mask(df['Change'] > 0, 0)
+
+        # 计算平均上涨和平均下跌
+        df['AvgGain'] = df['Gain'].rolling(window=rsi_window).mean()
+        df['AvgLoss'] = df['Loss'].rolling(window=rsi_window).mean()
+
+        # 计算 RS 和 RSI
+        df['RS'] = df['AvgGain'] / df['AvgLoss']
+        df['RSI'] = 100 - (100 / (1 + df['RS']))
+
+        # 删除中间计算列
+        return df.drop(['Change', 'Gain', 'Loss', 'AvgGain', 'AvgLoss', 'RS'], axis=1)
+
+    def get_history_candles_data(self, instId, before, after, bar):
+        history_data_list = []
+        data_res = True
+        date_format = "%Y-%m-%d"
+        before_datetime = datetime.strptime(before, date_format)
+        after_datetime = datetime.strptime(after, date_format)
+
+        delta = after_datetime - before_datetime
+
+        time_bar = bar[1]
+        if time_bar == 'D':
+            delta = delta.days
+
+        # okx最多返回1440条数据，每次返回300分页
+        if delta > 1440:
+            raise Exception('周期差不能超过1440')
+        else:
+            while before_datetime < after_datetime:
+                before_timestamp = int(time.mktime(before_datetime.timetuple()) * 1000)
+                after_datetime_n = before_datetime - timedelta(days=-300) if before_datetime - timedelta(
+                    days=-300) < after_datetime else after_datetime
+                after_timestamp = int(time.mktime(after_datetime_n.timetuple()) * 1000)
+                # 超过300天分批查到1440天,拼接结果
+                res = self.MarketApi.get_candlesticks(instId=instId, before=before_timestamp, after=after_timestamp,
+                                                      bar=bar, limit=1000)
+                if res.get('code') == '0':
+                    # history_data_list = history_data_list + res.get('data')
+                    history_data_list.extend(res.get('data'))
+                    before_datetime = before_datetime - timedelta(days=-300)
+                else:
+                    data_res = False
+                    break
+            if data_res:
+                df = pd.DataFrame(history_data_list, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'volCcy',
+                                        'volCcyQuote', 'confirm'])
+                df['high'] = df['high'].astype(float)
+                df['low'] = df['low'].astype(float)
+                df['close'] = df['close'].astype(float)
+                df['timestamp'] = df['timestamp'].astype(str)
+                # 只取日期中的某些信息：dt.XXXX (XXXX= date、time、hour、year、month、day)
+                # df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms').dt.date
+        return df
+
 
 
 if __name__ == '__main__':
