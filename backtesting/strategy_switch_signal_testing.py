@@ -164,20 +164,13 @@ class StrategyExecutor:
         """网格策略逻辑"""
         # 实现具体的网格交易逻辑
         print(idx, data_row)
-        if self.position == 0:
-            pass
-        else:
-            pass
+
         pass
 
     def _trend_following(self, idx, data_row):
         """趋势跟踪策略"""
         # 实现具体的趋势跟踪逻辑
         print(idx, data_row)
-        if self.position == 0:
-            pass
-        else:
-            pass
         pass
 
 
