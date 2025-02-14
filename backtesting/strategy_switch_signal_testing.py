@@ -8,6 +8,7 @@ import numpy as np
 from typing import Tuple
 import matplotlib.pyplot as plt
 
+from config import STRATEGY_CLASS_CONFIG
 from factory.MarketFactory import MarketFactory
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
@@ -45,7 +46,7 @@ root_dir = pathlib.Path(__file__).resolve().parent.parent
 该框架需要配合具体的网格和趋势策略实现细节，可根据实际交易需求扩展仓位管理模块和订单执行接口。
 '''
 
-
+# todo 暂定在回测发现btc上涨比较准确，下跌和横盘减小杠杆，上涨时加大杠杆
 class StrategySwitchSignal:
     def __init__(self, window_size=200):
         # 参数初始化
@@ -74,7 +75,7 @@ class StrategySwitchSignal:
 
         # 计算价格与EMA偏离度
         df['deviation'] = (df['close'] - df['EMA']) / df['EMA']
-        return df.dropna()
+        return df
 
     def _market_state_judge(self, row) -> str:
         """判断市场状态"""
@@ -92,6 +93,7 @@ class StrategySwitchSignal:
         # if trend_strength > 0.08 and not rsi_cond:
         if trend_strength > 0.08:
             if self.trend_count >= self.trend_confirmation:
+                # todo 如果想做多多一点可以让trend_direction > 负数试试
                 return 'trend' if trend_direction > 0 else 'downtrend'
             self.trend_count += 1
         else:
@@ -105,7 +107,6 @@ class StrategySwitchSignal:
         """生成切换信号"""
         df = self._get_indicators(ohlcv.copy())
         signals = []
-        # print(df)
         df.sort_index().to_csv('{}/operation_data/indicators.csv'.format(root_dir), index=True)
 
         for idx, row in df.iterrows():
@@ -121,15 +122,31 @@ class StrategySwitchSignal:
         return pd.DataFrame(signals).set_index('timestamp')
 
 
-class StrategyExecutor:
-    def __init__(self):
+class StrategyExecutor():
+    def __init__(self, instId='BTC-USDT-SWAP', bar='1Dutc', flag=1):
         self.current_strategy = 'grid'
         self.position = 0.0
+        # 0生产 1模拟
+        self.flag = flag
+        self.history_df = pd.read_csv('{}/operation_data/df.csv'.format(root_dir))  # todo 生产改为根据instid周期以及flag等参数取数据
+        self.operate_list = []
+        self.principal = 100000  # 本金
+        self.stratege_conf = STRATEGY_CLASS_CONFIG
+        self.instId = instId
+        self.cost = 0.0
+        self.total = 100000
+        self.quantity = 0.0
+        # self.total_start = 100000
+        # self.current_value_start = 0.0
 
     def execute_strategy(self, signal_df: pd.DataFrame):
         """策略执行模拟"""
         results = []
-
+        # if self.flag == 1:
+        #     self.current_value_start = self.history_df.loc[0]['close']
+        # else:
+        #     # 实时获取c
+        #     pass
         for idx, row in signal_df.iterrows():
             # 策略切换逻辑
             if row['market_state'] != self.current_strategy:
@@ -137,6 +154,7 @@ class StrategyExecutor:
 
             # 模拟策略执行（需根据具体策略实现）
             if self.current_strategy == 'grid':
+            # if self.current_strategy != 'trend':
                 self._grid_trading(idx, row)
             else:
                 self._trend_following(idx, row)
@@ -146,7 +164,9 @@ class StrategyExecutor:
                 'strategy': self.current_strategy,
                 'position': self.position
             })
-
+        # 最后operate_list入文件
+        operate_list_pd = pd.DataFrame(self.operate_list).set_index('datetime').sort_index()
+        operate_list_pd.to_csv('{}/operation_data/operate.csv'.format(root_dir))
         return pd.DataFrame(results).set_index('timestamp')
 
     def _strategy_transition(self, new_strategy: str):
@@ -160,17 +180,133 @@ class StrategyExecutor:
             self.position *= 0.5  # 减半仓位转向网格
         self.current_strategy = new_strategy
 
+    # 出一个文件包括操作记录以及总价值
     def _grid_trading(self, idx, data_row):
+        # todo 暂时网格区间平仓，网格逻辑后补
         """网格策略逻辑"""
         # 实现具体的网格交易逻辑
-        print(idx, data_row)
-
+        # print(idx, data_row)
+        strategy = data_row['market_state']
+        if self.flag == 1:
+            data_today = self.history_df.loc[self.history_df['timestamp'].astype(str).str[:19] == str(idx)[:19]].iloc[0]
+            current_value = data_today['close']
+            datetime = str(idx)[:19]
+            lotSz = 4
+        else:
+            # todo 生产后写，实时获取数据1. 获取实时数据 2. 拿到当前价格作为成本 3.下单精度 4.当前时间datetime
+            data_today = self.history_df.loc[self.history_df['timestamp'].astype(str).str[:19] == str(idx)[:19]]
+            current_value = data_today['close']
+            datetime = str(idx)[:19]
+            lotSz = 4
+            pass
+        self.principal = self.total
+        self.quantity = 0.0
+        self.operate_list.append({
+            'datetime': datetime,
+            'total': self.total,
+            'current_value': current_value,
+            'num': self.quantity,  # 数量
+            'strategy': strategy,  # 策略
+        })
         pass
 
     def _trend_following(self, idx, data_row):
         """趋势跟踪策略"""
         # 实现具体的趋势跟踪逻辑
-        print(idx, data_row)
+        # print(idx, data_row)
+        if self.flag == 1:
+            data_today = self.history_df.loc[self.history_df['timestamp'].astype(str).str[:19] == str(idx)[:19]].iloc[0]
+            current_value = data_today['close']
+            datetime = str(idx)[:19]
+            lotSz = 4
+        else:
+            # todo 生产后写，实时获取数据1. 获取实时数据 2. 拿到当前价格作为成本 3.下单精度 4.当前时间datetime
+            data_today = self.history_df.loc[self.history_df['timestamp'].astype(str).str[:19] == str(idx)[:19]]
+            current_value = data_today['close']
+            datetime = str(idx)[:19]
+            lotSz = 4
+            pass
+        flag = lambda x: 'Pre' if x == 1 else 'Prd'
+        config = self.stratege_conf.get('Trend_{}'.format(flag(self.flag))).get(self.instId)
+        # 方向
+        strategy = data_row['market_state']
+        trend_lever = config.get('trend_lever')
+        down_trend_lever = config.get('down_trend_lever')
+        lever = trend_lever if strategy == 'trend' else down_trend_lever
+        if len(self.operate_list) == 0:
+            last_strategy = self.current_strategy
+        else:
+            last_strategy = self.operate_list[-1].get('strategy')
+        ordType = config.get('ordType')
+        # todo 这里先携程配置。后续改为用算法计算仓位冰之
+        initial_position = config.get('initial_position')
+        # 开多：买入开多（side 填写 buy； posSide 填写 long ）
+        # 开空：卖出开空（side 填写 sell； posSide 填写 short ）
+        # 平多：卖出平多（side 填写 sell；posSide 填写 long ）
+        # 平空：买入平空（side 填写 buy； posSide 填写 short ）
+        if self.quantity == 0.0:
+            # 下单
+            self.quantity = round(self.principal * lever * initial_position / current_value, lotSz)
+            self.cost = current_value
+            # 总价值 = 本金 + 持仓 *（当前价格 - 成本）
+            self.total = self.principal
+
+            #  res = self.TradeAPI.place_order(instId=instId, tdMode="isolated", clOrdId="{}{}".format(clOrdCode, loc),
+            #                                                 side=side, ordType=ordType,
+            #                                                 sz=num, posSide=posSide, attachAlgoOrds=attachAlgoOrds)
+            order_map = {
+                'num': self.quantity,  # 数量
+                'posSide': 'long' if strategy == 'trend' else 'short',  # 多空
+                'ordType': ordType,  # 下单方式，如果是限价还要有下单价格
+                'side': 'buy' if strategy == 'trend' else 'sell',  # 方向
+            }
+            self.order(order_map)
+        else:
+            # 已有仓位
+            # 趋势相同不动
+            if self.current_strategy == last_strategy:
+                if self.current_strategy == 'trend':
+                    self.total = self.principal + self.quantity * (current_value - self.cost)
+                else:
+                    self.total = self.principal + self.quantity * (self.cost - current_value)
+
+            else:
+                print(datetime, self.current_strategy, last_strategy)
+                # 平仓后开仓
+                self.principal = self.total
+                order_map_sell = {
+                    'num': self.quantity,  # 数量
+                    'posSide': 'long' if strategy == 'trend' else 'short',  # 多空
+                    'ordType': ordType,  # 下单方式，如果是限价还要有下单价格
+                    'side': 'sell' if strategy == 'trend' else 'buy',  # 方向
+                }
+                self.order(order_map_sell)
+                # 买
+                self.quantity = round(self.principal * lever * initial_position / current_value, lotSz)
+                self.cost = current_value
+                order_map_buy = {
+                    'num': self.quantity,  # 数量
+                    'posSide': 'long' if strategy == 'trend' else 'short',  # 多空
+                    'ordType': ordType,  # 下单方式，如果是限价还要有下单价格
+                    'side': 'sell' if strategy == 'trend' else 'buy',  # 方向
+                }
+                self.order(order_map_buy)
+
+        self.operate_list.append({
+            'datetime': datetime,
+            'total': self.total,
+            'current_value': current_value,
+            'num': self.quantity,  # 数量
+            'strategy': strategy,  # 策略
+        })
+
+    def order(self, order_map):
+        if self.flag == 0:
+            # 真正调用
+            pass
+        else:
+            pass
+        # 可将order_map入文件
         pass
 
 
@@ -190,34 +326,47 @@ if __name__ == "__main__":
     df.set_index(pd.to_datetime(df['timestamp'], unit='ms'), inplace=True)
     df.sort_index().to_csv('{}/operation_data/df.csv'.format(root_dir), index=True)
 
-    # 生成信号
+    # 生成信号 0 生产 1模拟
     signal_generator = StrategySwitchSignal()
-    signals = signal_generator.generate_signals(df)
+    signals = signal_generator.generate_signals(df).sort_index()
 
-    signals.sort_index().to_csv('{}/operation_data/singnals.csv'.format(root_dir), index=True)
+    signals.to_csv('{}/operation_data/singnals.csv'.format(root_dir), index=True)
 
     # 执行策略切换
-    executor = StrategyExecutor()
+    executor = StrategyExecutor(instId='BTC-USDT-SWAP', bar='1Dutc', flag=1)
     result = executor.execute_strategy(signals)
 
     result.sort_index().to_csv('{}/operation_data/convert.csv'.format(root_dir), index=True)
 
+    df_operate = pd.read_csv('{}/operation_data/operate.csv'.format(root_dir))
+    total_start = float(df_operate.loc[0]['total'])
+    current_value_start = float(df_operate.loc[0]['current_value'])
+    df_operate.set_index(pd.to_datetime(df_operate['datetime']), inplace=True)
+
     # 可视化结果
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 12))
 
+    print(df['close'].dtype)
     df['close'].plot(ax=ax1, title='Price')
 
     # df_chuli = pd.read_csv('{}/operation_data/indicators.csv'.format(root_dir))
     # df_chuli['EMA'].plot(ax=ax1, title='EMA')
 
-    signals['market_state'].apply(lambda x: 1 if x == 'trend' else 0).plot(ax=ax1, secondary_y=True, style='g--')
-
-    result['strategy'].apply(lambda x: 1 if x == 'trend' else 0).plot(ax=ax2, title='Strategy Status')
-
-    # di = {"trend": 1, "downtrend": -1, "grid": 0}
-
-    # signals['market_state'].apply(lambda x: di[x]).plot(ax=ax1, secondary_y=True, style='g--')
+    # signals['market_state'].apply(lambda x: 1 if x == 'trend' else 0).plot(ax=ax1, secondary_y=True, style='g--')
     #
-    # result['strategy'].apply(lambda x: di[x]).plot(ax=ax2, title='Strategy Status')
+    # result['strategy'].apply(lambda x: 1 if x == 'trend' else 0).plot(ax=ax2, title='Strategy Status')
+
+    di = {"trend": 1, "downtrend": -1, "grid": 0}
+
+    signals['market_state'].apply(lambda x: di[x]).plot(ax=ax1, secondary_y=True, style='g--')
+
+    result['strategy'].apply(lambda x: di[x]).plot(ax=ax2, title='Strategy Status')
+
+    # todo 画图的同时计算比例
+    df_operate['total'].apply(lambda x: round(float(x)/total_start, 2)).plot(ax=ax3, title='totol')
+    df_operate['current_value'].apply(lambda x: round(float(x)/current_value_start, 2)).plot(ax=ax3)
+    signals['market_state'].apply(lambda x: di[x]).plot(ax=ax3, secondary_y=True, style='g--')
+
+    # todo 计算最大回撤和夏普比例相关系数
     plt.show()

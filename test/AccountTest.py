@@ -3,16 +3,16 @@ import unittest
 from loguru import logger
 
 from okx import Account
-from config import PASSPHRASE
+from config import dev_ak,dev_pw,dev_sk
 
 
 class AccountTest(unittest.TestCase):
     def setUp(self):
-        api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
-        api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
-        passphrase = PASSPHRASE
+        api_key = dev_ak
+        api_secret_key = dev_sk
+        passphrase = dev_pw
         # 0位正式环境 1 为模拟交易环境
-        self.AccountAPI = Account.AccountAPI(api_key, api_secret_key, passphrase, flag='0')
+        self.AccountAPI = Account.AccountAPI(api_key, api_secret_key, passphrase, flag='1')
 
     # '''
     # POSITIONS_HISTORY = '/api/v5/account/positions-history' #need add
@@ -29,8 +29,8 @@ class AccountTest(unittest.TestCase):
     def test_get_instruments(self):
         # btc合约0.1最小下单数
         print(self.AccountAPI.get_instruments(instType='SWAP',instId='ETC-USDT-SWAP'))
-    # def test_get_account_bills_archive(self):
-    #     print(self.AccountAPI.get_account_bills_archive(begin='1715780962300',end='1716998400000'))
+    def test_get_account_bills_archive(self):
+        print(self.AccountAPI.get_account_bills_archive())
     # def test_positions_builder(self):
     #     print("Both real and virtual positions and assets are calculated")
     #     sim_pos = [{'instId': 'BTC-USDT-SWAP', 'pos': '10'}, {'instId': 'BTC-USDT-SWAP', 'pos': '10'}]

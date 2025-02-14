@@ -123,7 +123,7 @@ STRATEGY_CLASS_CONFIG = {
                 'atr_bar': 14,  # 算每天震荡均值
                 'ccy': 'USDT',
                 'positionRatio': 0.8,  # 策略仓位
-                'lever': 1,
+                'lever': 5,
                 'instType': 'SWAP',
                 'stopLossRatio': 0.15,  # 止损比例
                 'interval': 10,  # 策略运行频率
@@ -134,5 +134,13 @@ STRATEGY_CLASS_CONFIG = {
                 'pos_direction': 2,  # 0做多1做空2双向
                 'frequency': 1,  # 每天的触网频率
             }
+        },
+    'Trend_Pre': {
+        'BTC-USDT-SWAP': {
+            'trend_lever': 5,
+            'down_trend_lever': 1,
+            'initial_position': 1,
+            'ordType': 'market',
         }
+    }
 }

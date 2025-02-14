@@ -1,14 +1,15 @@
 import unittest
 
 from okx import Trade
+from config import dev_ak,dev_pw,dev_sk
 
 
 class TradeTest(unittest.TestCase):
     def setUp(self):
-        api_key = 'd759cf97-a1b3-40da-9c49-911629d7b3b6'
-        api_secret_key = 'C8C89E3E0D6FA34530F1BBD2C33DFDBF'
-        passphrase = ''
-        self.tradeApi = Trade.TradeAPI(api_key, api_secret_key, passphrase, False, '0')
+        api_key = dev_ak
+        api_secret_key = dev_sk
+        passphrase = dev_pw
+        self.tradeApi = Trade.TradeAPI(api_key, api_secret_key, passphrase, False, '1')
 
     # # """
     # def test_place_order(self):

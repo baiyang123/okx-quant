@@ -2,9 +2,11 @@ import os
 import pathlib
 
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from config import dev_ak, dev_sk, dev_pw, prd_ak, prd_sk, prd_pw, STRATEGY_CONFIG, ORDER_PATH, ORDER_COLUMNS, \
     STRATEGY_CLASS_CONFIG
+from factory.MarketFactory import MarketFactory
 from okx import Trade
 
 root_dir = pathlib.Path(__file__).resolve().parent.parent
@@ -13,7 +15,7 @@ from loguru import logger
 
 class TradeFactory:
 
-    def __init__(self, flag='0'):
+    def __init__(self, flag='1'):
         api_key = prd_ak if flag == '0' else dev_ak
         api_secret_key = prd_sk if flag == '0' else dev_sk
         passphrase = prd_pw if flag == '0' else dev_pw
@@ -116,9 +118,42 @@ class TradeFactory:
             logger.error('市价仓位全平失败{}'.format(res))
             raise Exception(res.get('msg'))
 
+    def get_order_histry_archive(self, data):
+        instType = data.get('instType')
+        statistic = data.get('statistic')
+        res = self.TradeAPI.get_orders_history_archive(instType=instType)
+        if res.get('code') == '0':
+            df = pd.DataFrame(res.get('data'))
+            df.set_index(pd.to_datetime(df['uTime'], unit='ms'), inplace=True)
+            df.sort_index()
+            # 要统计
+            if statistic == '1':
+                filtered_df = df[(df['pnl'] != '0') & (df.index > '2025-01-08 02:11:04.320')]
+                # df['A_squared'] = df['A'].map(lambda x: x ** 2)
+                filtered_df['pnl'] = filtered_df['pnl'].astype(float).apply(lambda x: (x+100000)/100000)
+                before = '2025-01-08'
+                after = '2025-01-20'
+                mf = MarketFactory()
+                df = mf.get_history_candles_data(instId='BTC-USDT-SWAP', before=before, after=after, bar='1Dutc')
+                # df = pd.DataFrame(res.get('data'), columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'volCcy',
+                #                                    'volCcyQuote', 'confirm'])
+                df['close'] = df['close'].astype(float)
+                df.set_index(pd.to_datetime(df['timestamp'], unit='ms'), inplace=True)
+
+                fig, ax = plt.subplots(1, 1, figsize=(12, 4))
+
+                filtered_df['pnl'].plot(ax=ax, title='pnl')
+
+                close_start = df.head(1)['close']
+                df['close'].apply(lambda x: x/close_start).plot(ax=ax, secondary_y=True, style='g--')
+
+                plt.show()
+            return df
+
 
 if __name__ == '__main__':
     # attachAlgoOrds = [{'slTriggerPx': '0.00020524', 'slTriggerPxType': 'last', 'slOrdPx': '-1'}]
     # data = {'ts': '2024-12-13', 'current_value': '0.00021524', 'all': 2.4597146257247093, 'ordType': 'market', 'num': 3, 'side': 'buy', 'posSide': 'long', 'attachAlgoOrds': attachAlgoOrds}
     # print(TradeFactory().order(data, 'X-USDT-SWAP_MA'))
-    print(TradeFactory('1').get_orders_pending('BTC-USDT-SWAP'))
+    # print(TradeFactory('1').get_orders_pending('BTC-USDT-SWAP'))
+    print(TradeFactory('1').get_order_histry_archive({'instType': 'SWAP', 'statistic': '1'}))

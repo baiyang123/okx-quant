@@ -53,6 +53,9 @@ class Grid_Testing:
         print(ts)
         # 根据类名（就是策略类型）获取策略包含的品种
         strategy_class_name = self.__class__.__name__
+        file_path = '{}/operation_data/gridInf_testing.csv'.format(root_dir)
+        lotsz = 1
+        current_value = round(float(self.current_value), lotsz)
         try:
             strategy_class_config = STRATEGY_CLASS_CONFIG.get(strategy_class_name)
             for instId, strategy_config in strategy_class_config.items():
@@ -70,7 +73,7 @@ class Grid_Testing:
                 bar = strategy_config.get('bar')
                 # 简化写法--------------------
                 self.bar_df = pd.read_csv(
-                    '{}/history_data/history_data_{}_{}D.csv'.format(root_dir, self.instId, bar))
+                    '{}/history_data/history_data_{}_{}Dutc.csv'.format(root_dir, self.instId, bar))
                 self.bar_df['ts'] = self.bar_df['ts'].astype(str)
                 # df.to_json 很好用
                 # {'ts': '2023-03-05', 'o': 22434.0, 'h': 22599.0, 'l': 22250.0, 'c': 22550.5, 'vol': 6460415.0, 'volCcy': 64604.15, 'volCcyQuote': 1448268050.8, 'confirm': 1, 'ma5': 0.0, 'ma20': 0.0}
@@ -580,8 +583,8 @@ if __name__ == '__main__':
         df.to_csv(file_path, index=False)
 
     # date_format = "%Y-%m-%d"
-    start_time = '2023-04-30'
-    end_time = '2024-10-30'
+    start_time = '2024-01-08'
+    end_time = '2025-01-20'
     while start_time <= end_time:
         Grid_Testing().strategy(start_time)
         next_time_obj = datetime.strptime(start_time, '%Y-%m-%d') + timedelta(days=1)
