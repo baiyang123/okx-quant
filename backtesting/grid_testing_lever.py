@@ -583,13 +583,14 @@ if __name__ == '__main__':
         df.to_csv(file_path, index=False)
 
     # date_format = "%Y-%m-%d"
-    start_time = '2024-01-08'
-    end_time = '2025-01-20'
+    start_time = '2024-12-18'
+    end_time = '2025-01-18'
     while start_time <= end_time:
         Grid_Testing().strategy(start_time)
         next_time_obj = datetime.strptime(start_time, '%Y-%m-%d') + timedelta(days=1)
         start_time = datetime.strftime(next_time_obj, '%Y-%m-%d')
     df_all = pd.read_csv(file_path)
+    df_all = df_all[df_all['current_value']!=0]
     value_start = df_all.loc[0]['current_value']
     all_start = df_all.loc[0]['all']
     from matplotlib import pyplot as plt
